@@ -58,6 +58,7 @@ def test__init__fails_() -> None:
     return None
 
 @pytest.fixture(name="serial_port", scope='session')
+#
 def fixture_serial_port() -> serial:
     sp = serial.Serial(port='COM4', baudrate=19200, bytesize=serial.EIGHTBITS,
          parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE,timeout=1, xonxoff=True,
