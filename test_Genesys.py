@@ -78,10 +78,11 @@ def test__init__passes(genesys: Genesys) -> None:
     assert genesys.serial_port.baudrate in genesys.BAUD_RATES                           ;  print(genesys.serial_port.baudrate)
     assert genesys.serial_port.port == 'COM4'                                           ;  print(genesys.serial_port.port)
     assert genesys.listening_addresses == {genesys.serial_port.port : genesys.address}  ;  print(genesys.listening_addresses)
-    assert genesys.get_remote_mode == 'LLO'
+    rm = genesys.get_remote_mode()
+    assert rm == 'LLO'
     idn = genesys.get_identity()                                                        ;  print('idn:     ' + idn)
-    assert 'Lambda, GEN' in idn
-    idn = idn[idn.index('GEN') + 4 :]
+    assert 'LAMBDA,GEN' in idn
+    idn = idn[idn.index('GEN') + 3 :]
     v = idn[: idn.index('-')]
     a = idn[idn.index('-') + 1 :]
     assert genesys.VOL == {'min':0.000, 'MAX':float(v)}
@@ -91,20 +92,11 @@ def test__init__passes(genesys: Genesys) -> None:
     assert genesys.UVL == genesys.UVLs[idn]
     return None
 
-def test__del__(genesys: Genesys) -> None:
-    # Confirmed genesys.__del__() did not execute when Python's garbage collector was solely depended upon.
-    # Confirmed genesys.__del__() did execute when Genesys objects were explicitly deleted; 'del Genesys'.
-    genesys.set_remote_mode('LLO')
-    assert genesys.get_remote_mode == 'LLO'
-    assert genesys.__del__() is None
-    assert genesys.get_remote_mode == 'LLO'
-    genesys.set_remote_mode('REM')
-    return None
-
 def test__str__(genesys: Genesys) -> None:
     _str_ = genesys.__str__()
     assert type(_str_) == str
-    assert _str_ == genesys.get_identity
+    idn = genesys.get_identity()
+    assert _str_ == idn
     return None
 
 def test_clear_status(genesys: Genesys) -> None:
@@ -153,13 +145,13 @@ def get_ms_parallel_operation(genesys: Genesys) -> None:
 def test_get_identity(genesys: Genesys) -> None:
     idn = genesys.get_identity()
     assert type(idn) == str
-    assert 'Lambda, GEN' in idn
+    assert 'LAMBDA,GEN' in idn
     return None
 
 def test_get_revision(genesys: Genesys) -> None:
     rev = genesys.get_revision()
     assert type(rev) == str
-    assert 'Ver' in rev
+    assert 'REV' in rev
     return None
 
 def test_get_serial_number(genesys: Genesys) -> None:
@@ -244,7 +236,7 @@ def test_get_voltages_currents(genesys: Genesys) -> None:
 
 def test_get_status(genesys: Genesys) -> None:
     s = genesys.get_status()                 ; print(s)
-    assert type(s) == str
+    assert type(s) == dict
     assert s.count('(') == 6
     assert s.count(')') == 6
     assert s.count(',') == 5
@@ -501,19 +493,21 @@ def test__read_response(genesys: Genesys) -> None:
                        '10','11','12','13','14','15','16','17','18','19',
                        '20','21','22','23','24','25','26','27','28','29',
                        '30')
-        cmd = 'ADR {}'.format(adr)                                               ;  print(cmd)
-        assert cmd == 'ADR ' + adr
+        cmd = 'ADR {}\r'.format(adr)                                               ;  print(cmd)
+        assert cmd == 'ADR ' + adr + '\r'
         genesys.serial_port.write(cmd.encode('utf-8'))
         t0 = time.time()  ;  time.sleep(0.150)  ;  t_slept = time.time() - t0     ;  print(t_slept)
         assert (0.150 <= t_slept <= 0.250)
+        r = genesys._read_response()
+        assert r == 'OK'
     assert genesys.serial_port.port in genesys.listening_addresses
     assert genesys.listening_addresses[genesys.serial_port.port] == genesys.address
-    assert genesys.serial_port.write('IDN?'.encode('utf-8')) == 4 # 4 = number of bytes written, from 'IDN?'.
+    assert genesys.serial_port.write('IDN?\r'.encode('utf-8')) == 5 # 5 = number of bytes written, from 'IDN?\r'.
     t0 = time.time()  ;  time.sleep(0.150)  ;  t_slept = time.time() - t0         ;  print(t_slept)
     assert (0.150 <= t_slept <= 0.250)
     r = genesys._read_response()                                                  ;  print(r)
     assert type(r) == str
-    assert 'Lambda, GEN' in r
+    assert 'LAMBDA,GEN' in r
     assert '\r' not in r
     return None
 
@@ -521,7 +515,7 @@ def test__write_command(genesys: Genesys) -> None:
     assert genesys._write_command('IDN?') is None
     r = genesys.serial_port.readline().decode('utf-8')  ;  print(r)
     assert type(r) == str
-    assert 'Lambda, GEN' in r
+    assert 'LAMBDA,GEN' in r
     assert '\r' in r
     return None
 
