@@ -65,8 +65,8 @@ def fixture_serial_port() -> serial:
          rtscts=False, write_timeout=0, dsrdtr=False, inter_byte_timeout=None)
     return sp
 
-@pytest.fixture(name="genesys_address", params=(0))
-def fixture_genesys_address(request: int) -> int:
+@pytest.fixture(name="genesys_address",params={0})
+def fixture_zup_address(request):
     return request.param
 
 @pytest.fixture(name="genesys")
