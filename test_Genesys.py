@@ -38,7 +38,7 @@ def test_format() -> None:
 
 def test__init__fails_() -> None:
     sp = serial.Serial(port='COM4', baudrate=115200, bytesize=serial.EIGHTBITS,
-                       parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE,timeout=1, xonxoff=True,
+                       parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE,timeout=2, xonxoff=True,
                        rtscts=False, write_timeout=0, dsrdtr=False, inter_byte_timeout=None)
     assert 0 in Genesys.ADDRESS_RANGE
     assert 115200 not in Genesys.BAUD_RATES
@@ -136,10 +136,16 @@ def test_multi_drop_installed(genesys: Genesys) -> None:
     assert type(genesys.multi_drop_installed()) == bool
     return None
 
-def get_ms_parallel_operation(genesys: Genesys) -> None:
+def test_get_ms_parallel_operation(genesys: Genesys) -> None:
     mspo = genesys.get_ms_parallel_operation()
     assert type(mspo) == int
     assert mspo in (0,1,2,3,4)
+    return None
+
+def test_repeat_last_command(genesys: Genesys) -> None:
+    idn = genesys.get_identity()
+    rlc = genesys.repeat_last_command()
+    assert idn = rlc
     return None
 
 def test_get_identity(genesys: Genesys) -> None:
@@ -229,17 +235,26 @@ def test_get_operation_mode(genesys: Genesys) -> None:
 
 def test_get_voltages_currents(genesys: Genesys) -> None:
     vc = genesys.get_voltages_currents()     ; print(vc)
-    assert type(vc) == str
-    assert vc.count('.') == 6
-    assert vc.count(',') == 5
+    assert type(vc) == dict
+    assert len(vc) == 6
+    assert type(vc['Voltage Measured']   == float)
+    assert type(vc['Voltage Programmed'] == float)
+    assert type(vc['Amperage Measured']  == float)
+    assert type(vc['Voltage Programmed'] == float)
+    assert type(vc['Over Voltage']       == float)
+    assert type(vc['Under Voltage']      == float)
     return None
 
 def test_get_status(genesys: Genesys) -> None:
     s = genesys.get_status()                 ; print(s)
     assert type(s) == dict
-    assert s.count('(') == 6
-    assert s.count(')') == 6
-    assert s.count(',') == 5
+    assert len(s) == 6
+    assert type(s['Voltage Measured']   == float)
+    assert type(s['Voltage Programmed'] == float)
+    assert type(s['Amperage Measured']  == float)
+    assert type(s['Voltage Programmed'] == float)
+    assert type(s['Status Register']    == int)
+    assert type(s['Fault Register']     == int)
     return None
 
 def test_set_filter_frequency(genesys: Genesys) -> None:
@@ -400,14 +415,19 @@ def test_save_settings(genesys: Genesys) -> None:
 # def test_recall_settings(genesys: Genesys) -> None:
     # See test_save_settings(genesys: Genesys) above.
 
-def clear_status(self) -> None:
-    """ Sets GEN FEVE & SEVE registers to 0
+
+
+
+
+
+
+def get_register_status_event(self) -> int:
+    """ Reads GEN Status Event register
         Inputs:       None
-        Outputs:      None
-        GEN command:  CLS
+        Outputs:      int, Status Event register contents in 2-digit hex
+        GEN command:  SEVE?
     """
-    self._write_command('CLS')
-    return None
+    return int(self.command_interrogative('SEVE?'))
 
 def get_register_fault_condition(genesys: Genesys) -> None:
     """ Reads GEN Fault Condition register
@@ -429,6 +449,82 @@ def get_register_fault_enable(self) -> int:
     fena = int(self._read_response())
     return format(fena,'X')
 
+def set_register_fault_enable(self, fault_enable: int) -> None:
+    """ Programs GEN Fault Enable register
+        Inputs:       fault_enable: int, desired Fault Enable register contents in 2-digit hex
+        Outputs:      None
+        GEN command:  FENA {}
+        - Class Genesys supports Service Requests, but SRQ messages are be handled by the client application.
+        - From 'TDK-Lambda Genesys Power Supplies User Manual, 83-507-013':
+            - Since Service Request messages may be sent from any supply at any time,
+            there is a chance they can collide with other messages from other supplies.
+            - Your controller software has to be sophisticated enough to read messages that
+            may come at any time, and to recover if messages are corrupted by collisions.
+            - If you need Service Request messaging, please contact TDK-Lambda for assistance.
+            We can provide several special communication commands and settings that will help with this.
+    """
+    if type(fault_enable) != int:
+        raise TypeError('Invalid Fault Enable, must be an int.')
+    if not (0 <= fault_enable <= 255):
+        raise ValueError('Invalid Fault Enable, must be in range (0..255).')
+    fault_enable = format(fault_enable,'X')
+    self.command_imperative('FENA {}'.format(fault_enable))
+    return None
+
+def get_register_fault_event(self) -> int:
+    """ Reads GEN Fault Event register
+        Inputs:       None
+        Outputs:      int, Fault Event register contents in 2-digit hex
+        GEN command:  FEVE?
+    """
+    return int(self.command_interrogative('FEVE?'))
+
+def get_register_status_condition(self) -> int:
+    """ Reads GEN Status Condition register
+        Inputs:       None
+        Outputs:      int, Status Condition register contents in 2-digit hex
+        GEN command:  STAT?
+    """
+    return int(self.command_interrogative('STAT?'))
+
+def set_register_status_condition(self, status_enable: int) -> None:
+    """ Programs GEN Status Condition register
+        Inputs:       status_enable: int, desire Status Condition register contents in 2-digit hex
+        Outputs:      None
+        GEN command:  SENA {}
+        - Class Genesys supports Service Requests, but SRQ messages are be handled by the client application.
+        - From 'TDK-Lambda Genesys Power Supplies User Manual, 83-507-013':
+            - Since Service Request messages may be sent from any supply at any time,
+            there is a chance they can collide with other messages from other supplies.
+            - Your controller software has to be sophisticated enough to read messages that
+            may come at any time, and to recover if messages are corrupted by collisions.
+            - If you need Service Request messaging, please contact TDK-Lambda for assistance.
+            We can provide several special communication commands and settings that will help with this.
+    """
+    if type(status_enable) != int:
+        raise TypeError('Invalid Status Enable, must be an int.')
+    if not (0 <= status_enable <= 255):
+        raise ValueError('Invalid Status Enable, must be in range (0..255).')
+    status_enable = format(status_enable,'X')
+    self.command_imperative('SENA {}'.format(status_enable))
+    return None
+
+def get_register_status_enable(self) -> int:
+    """ Reads GEN Status Enable register
+        Inputs:       None
+        Outputs:      int, Status Enable register contents in 2-digit hex
+        GEN command:  SENA?
+    """
+    return int(self.command_interrogative('SENA?'))
+
+def command_imperative(self, command: str) -> None:
+    """ Reads GEN Status Event register
+        Inputs:       command: str, imperative command; a command to do something
+        Outputs:      None
+    """
+    assert command[-1] != '?' # All Genesys imperative commands don't end with '?', and do respond with 'OK'.
+    assert self._write_command_read_response(command + '\r') == 'OK'
+    return None
 
 
 
