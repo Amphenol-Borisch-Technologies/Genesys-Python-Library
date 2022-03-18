@@ -635,97 +635,103 @@ class Genesys(object):
         # Genesys User Manual paragraph 7.9.3, 'Read Power-On Time'.
         return Genesys._fast_query(serial_port, address, bytes([0xA6, address]), 12)
 
-    def get_register_status_event(self) -> int:
-        """ Reads GEN Status Event register
-            Inputs:       None
-            Outputs:      int, Status Event register contents in 2-digit hex
-            GEN command:  SEVE?
-        """
-        return int(self.command_interrogative('SEVE?'))
+def get_register_status_event(self) -> int:
+    """ Reads GEN Status Event register
+        Inputs:       None
+        Outputs:      int, Status Event register contents in 2-digit hex
+        GEN command:  SEVE?
+    """
+    rse = int(self.command_interrogative('SEVE?'))
+    return format(rse,'X')
 
-    def get_register_fault_condition(self) -> int:
-        """ Reads GEN Fault Condition register
-            Inputs:       None
-            Outputs:      int, Fault Condition register contents in 2-digit hex
-            GEN command:  FLT?
-        """
-        return int(self.command_interrogative('FLT?'))
+def get_register_fault_condition(genesys: Genesys) -> None:
+    """ Reads GEN Fault Condition register
+        Inputs:       None
+        Outputs:      int, Fault Condition register contents in 2-digit hex
+        GEN command:  FLT?
+    """
+    flt = int(self.command_interrogative('FLT?'))
+    return format(flt,'X')
 
-    def get_register_fault_enable(self) -> int:
-        """ Reads GEN Fault Enable register
-            Inputs:       None
-            Outputs:      int, Fault Enable register contents in 2-digit hex
-            GEN command:  FENA?
-        """
-        return int(self.command_interrogative('FENA?'))
+def get_register_fault_enable(self) -> int:
+    """ Reads GEN Fault Enable register
+        Inputs:       None
+        Outputs:      int, Fault Enable register contents in 2-digit hex
+        GEN command:  FENA?
+    """
+    rfe = int(self.command_interrogative('FENA?'))
+    return format(rfe,'X')
 
-    def set_register_fault_enable(self, fault_enable: int) -> None:
-        """ Programs GEN Fault Enable register
-            Inputs:       fault_enable: int, desired Fault Enable register contents in 2-digit hex
-            Outputs:      None
-            GEN command:  FENA {}
-            - Class Genesys supports Service Requests, but SRQ messages are be handled by the client application.
-            - From 'TDK-Lambda Genesys Power Supplies User Manual, 83-507-013':
-              - Since Service Request messages may be sent from any supply at any time,
-                there is a chance they can collide with other messages from other supplies.
-              - Your controller software has to be sophisticated enough to read messages that
-                may come at any time, and to recover if messages are corrupted by collisions.
-              - If you need Service Request messaging, please contact TDK-Lambda for assistance.
-                We can provide several special communication commands and settings that will help with this.
-        """
-        if type(fault_enable) != int:
-            raise TypeError('Invalid Fault Enable, must be an int.')
-        if not (0 <= fault_enable <= 255):
-            raise ValueError('Invalid Fault Enable, must be in range (0..255).')
-        fault_enable = format(fault_enable,'X')
-        self.command_imperative('FENA {}'.format(fault_enable))
-        return None
+def set_register_fault_enable(self, fault_enable: int) -> None:
+    """ Programs GEN Fault Enable register
+        Inputs:       fault_enable: int, desired Fault Enable register contents in 2-digit hex
+        Outputs:      None
+        GEN command:  FENA {}
+        - Class Genesys supports Service Requests, but SRQ messages are be handled by the client application.
+        - From 'TDK-Lambda Genesys Power Supplies User Manual, 83-507-013':
+            - Since Service Request messages may be sent from any supply at any time,
+            there is a chance they can collide with other messages from other supplies.
+            - Your controller software has to be sophisticated enough to read messages that
+            may come at any time, and to recover if messages are corrupted by collisions.
+            - If you need Service Request messaging, please contact TDK-Lambda for assistance.
+            We can provide several special communication commands and settings that will help with this.
+    """
+    if type(fault_enable) != int:
+        raise TypeError('Invalid Fault Enable, must be an int.')
+    if not (0 <= fault_enable <= 255):
+        raise ValueError('Invalid Fault Enable, must be in range (0..255).')
+    fault_enable = format(fault_enable,'X')
+    self.command_imperative('FENA {}'.format(fault_enable))
+    return None
 
-    def get_register_fault_event(self) -> int:
-        """ Reads GEN Fault Event register
-            Inputs:       None
-            Outputs:      int, Fault Event register contents in 2-digit hex
-            GEN command:  FEVE?
-        """
-        return int(self.command_interrogative('FEVE?'))
+def get_register_fault_event(self) -> int:
+    """ Reads GEN Fault Event register
+        Inputs:       None
+        Outputs:      int, Fault Event register contents in 2-digit hex
+        GEN command:  FEVE?
+    """
+    rfe = int(self.command_interrogative('FEVE?'))
+    return format(rfe,'X')
 
-    def get_register_status_condition(self) -> int:
-        """ Reads GEN Status Condition register
-            Inputs:       None
-            Outputs:      int, Status Condition register contents in 2-digit hex
-            GEN command:  STAT?
-        """
-        return int(self.command_interrogative('STAT?'))
+def get_register_status_condition(self) -> int:
+    """ Reads GEN Status Condition register
+        Inputs:       None
+        Outputs:      int, Status Condition register contents in 2-digit hex
+        GEN command:  STAT?
+    """
+    rsc = int(self.command_interrogative('STAT?'))
+    return format(rsc,'X')
 
-    def set_register_status_condition(self, status_enable: int) -> None:
-        """ Programs GEN Status Condition register
-            Inputs:       status_enable: int, desire Status Condition register contents in 2-digit hex
-            Outputs:      None
-            GEN command:  SENA {}
-            - Class Genesys supports Service Requests, but SRQ messages are be handled by the client application.
-            - From 'TDK-Lambda Genesys Power Supplies User Manual, 83-507-013':
-              - Since Service Request messages may be sent from any supply at any time,
-                there is a chance they can collide with other messages from other supplies.
-              - Your controller software has to be sophisticated enough to read messages that
-                may come at any time, and to recover if messages are corrupted by collisions.
-              - If you need Service Request messaging, please contact TDK-Lambda for assistance.
-                We can provide several special communication commands and settings that will help with this.
-        """
-        if type(status_enable) != int:
-            raise TypeError('Invalid Status Enable, must be an int.')
-        if not (0 <= status_enable <= 255):
-            raise ValueError('Invalid Status Enable, must be in range (0..255).')
-        status_enable = format(status_enable,'X')
-        self.command_imperative('SENA {}'.format(status_enable))
-        return None
+def set_register_status_condition(self, status_enable: int) -> None:
+    """ Programs GEN Status Condition register
+        Inputs:       status_enable: int, desire Status Condition register contents in 2-digit hex
+        Outputs:      None
+        GEN command:  SENA {}
+        - Class Genesys supports Service Requests, but SRQ messages are be handled by the client application.
+        - From 'TDK-Lambda Genesys Power Supplies User Manual, 83-507-013':
+            - Since Service Request messages may be sent from any supply at any time,
+            there is a chance they can collide with other messages from other supplies.
+            - Your controller software has to be sophisticated enough to read messages that
+            may come at any time, and to recover if messages are corrupted by collisions.
+            - If you need Service Request messaging, please contact TDK-Lambda for assistance.
+            We can provide several special communication commands and settings that will help with this.
+    """
+    if type(status_enable) != int:
+        raise TypeError('Invalid Status Enable, must be an int.')
+    if not (0 <= status_enable <= 255):
+        raise ValueError('Invalid Status Enable, must be in range (0..255).')
+    status_enable = format(status_enable,'X')
+    self.command_imperative('SENA {}'.format(status_enable))
+    return None
 
-    def get_register_status_enable(self) -> int:
-        """ Reads GEN Status Enable register
-            Inputs:       None
-            Outputs:      int, Status Enable register contents in 2-digit hex
-            GEN command:  SENA?
-        """
-        return int(self.command_interrogative('SENA?'))
+def get_register_status_enable(self) -> int:
+    """ Reads GEN Status Enable register
+        Inputs:       None
+        Outputs:      int, Status Enable register contents in 2-digit hex
+        GEN command:  SENA?
+    """
+    rse = int(self.command_interrogative('SENA?'))
+    return format(rse,'X')
 
     def command_imperative(self, command: str) -> None:
         """ Reads GEN Status Event register

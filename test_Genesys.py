@@ -427,7 +427,8 @@ def get_register_status_event(self) -> int:
         Outputs:      int, Status Event register contents in 2-digit hex
         GEN command:  SEVE?
     """
-    return int(self.command_interrogative('SEVE?'))
+    rse = int(self.command_interrogative('SEVE?'))
+    return format(rse,'X')
 
 def get_register_fault_condition(genesys: Genesys) -> None:
     """ Reads GEN Fault Condition register
@@ -435,8 +436,7 @@ def get_register_fault_condition(genesys: Genesys) -> None:
         Outputs:      int, Fault Condition register contents in 2-digit hex
         GEN command:  FLT?
     """
-    genesys._write_command('FLT?')
-    flt = int(genesys._read_response())
+    flt = int(self.command_interrogative('FLT?'))
     return format(flt,'X')
 
 def get_register_fault_enable(self) -> int:
@@ -445,9 +445,8 @@ def get_register_fault_enable(self) -> int:
         Outputs:      int, Fault Enable register contents in 2-digit hex
         GEN command:  FENA?
     """
-    self._write_command('FENA?')
-    fena = int(self._read_response())
-    return format(fena,'X')
+    rfe = int(self.command_interrogative('FENA?'))
+    return format(rfe,'X')
 
 def set_register_fault_enable(self, fault_enable: int) -> None:
     """ Programs GEN Fault Enable register
@@ -477,7 +476,8 @@ def get_register_fault_event(self) -> int:
         Outputs:      int, Fault Event register contents in 2-digit hex
         GEN command:  FEVE?
     """
-    return int(self.command_interrogative('FEVE?'))
+    rfe = int(self.command_interrogative('FEVE?'))
+    return format(rfe,'X')
 
 def get_register_status_condition(self) -> int:
     """ Reads GEN Status Condition register
@@ -485,7 +485,8 @@ def get_register_status_condition(self) -> int:
         Outputs:      int, Status Condition register contents in 2-digit hex
         GEN command:  STAT?
     """
-    return int(self.command_interrogative('STAT?'))
+    rsc = int(self.command_interrogative('STAT?'))
+    return format(rsc,'X')
 
 def set_register_status_condition(self, status_enable: int) -> None:
     """ Programs GEN Status Condition register
@@ -515,7 +516,8 @@ def get_register_status_enable(self) -> int:
         Outputs:      int, Status Enable register contents in 2-digit hex
         GEN command:  SENA?
     """
-    return int(self.command_interrogative('SENA?'))
+    rse = int(self.command_interrogative('SENA?'))
+    return format(rse,'X')
 
 def command_imperative(self, command: str) -> None:
     """ Reads GEN Status Event register
