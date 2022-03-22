@@ -61,7 +61,7 @@ def test__init__fails_() -> None:
 #
 def fixture_serial_port() -> serial:
     sp = serial.Serial(port='COM4', baudrate=19200, bytesize=serial.EIGHTBITS,
-         parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE,timeout=1, xonxoff=True,
+         parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE,timeout=0, xonxoff=True,
          rtscts=False, write_timeout=0, dsrdtr=False, inter_byte_timeout=None)
     return sp
 
@@ -101,8 +101,10 @@ def test__str__(genesys: Genesys) -> None:
 
 def test_clear_status(genesys: Genesys) -> None:
     assert genesys.clear_status() is None
-    assert genesys.get_register_fault_event() == 0x00
-    assert genesys.get_register_status_event() == 0x00
+    rfe = genesys.get_register_fault_event()
+    assert rfe == 0x00
+    rse = genesys.get_register_status_event()
+    assert rse == 0x00
     return None
 
 def test_reset(genesys: Genesys) -> None:
@@ -116,7 +118,7 @@ def test_reset(genesys: Genesys) -> None:
     assert genesys.get_under_voltage_limit() == genesys.UVL['min']
     assert genesys.get_foldback_state() == 'OFF'
     assert genesys.get_register_fault_condition() == 0x00
-    assert genesys.get_register_status_condition() == 0x00
+    assert genesys.get_register_status_condition() == 0x04
     return None
 
 def test_set_remote_mode(genesys: Genesys) -> None:
@@ -235,6 +237,7 @@ def test_get_operation_mode(genesys: Genesys) -> None:
 
 def test_get_voltages_currents(genesys: Genesys) -> None:
     vc = genesys.get_voltages_currents()     ; print(vc)
+    print(vc)
     assert type(vc) == dict
     assert len(vc) == 6
     assert type(vc['Voltage Measured']   == float)
@@ -285,11 +288,11 @@ def test_set_power_state(genesys: Genesys) -> None:
     # See test_set_power_state(genesys: Genesys) above.
 
 def test_set_foldback_state(genesys: Genesys) -> None:
-    assert genesys.set_foldback('ON') is None
+    assert genesys.set_foldback_state('ON') is None
     fld = genesys.get_foldback_state()
     assert type(fld) == str
     assert fld == 'ON'
-    genesys.set_foldback('OFF')
+    genesys.set_foldback_state('OFF')
     assert genesys.get_foldback_state() == 'OFF'
     return None
 
@@ -298,9 +301,9 @@ def test_set_foldback_state(genesys: Genesys) -> None:
 
 def test_set_additional_foldback_delay(genesys: Genesys) -> None:
     with pytest.raises(TypeError):
-        genesys.set_foldback('Invalid Foldback Delay, so should fail.')
+        genesys.set_additional_foldback_delay('Invalid Foldback Delay, so should fail.')
     with pytest.raises(ValueError):
-        genesys.set_foldback(256)
+        genesys.set_additional_foldback_delay(256)
     for sd in (0, 255):
         assert genesys.set_additional_foldback_delay(sd) is None
         fd = genesys.get_foldback_delay()
@@ -353,11 +356,11 @@ def test_program_under_voltage_limit(genesys: Genesys) -> None:
     # See test_program_under_voltage_limit(genesys: Genesys) above.
 
 def test_set_autostart_state(genesys: Genesys) -> None:
-    assert genesys.set_autostart('ON') is None
+    assert genesys.set_autostart_state('ON') is None
     ast = genesys.get_autostart_state()
     assert type(ast) == str
     assert ast == 'ON'
-    genesys.set_autostart('OFF')
+    genesys.set_autostart_state('OFF')
     assert genesys.get_autostart_state() == 'OFF'
     return None
 
@@ -528,34 +531,6 @@ def command_imperative(self, command: str) -> None:
     assert self._write_command_read_response(command + '\r') == 'OK'
     return None
 
-
-
-
-
-def test_clear_registers(genesys: Genesys) -> None:
-    assert genesys.clear_registers() is None
-    ps = genesys.get_register_program()           ;  print(ps)
-    assert type(ps) == str
-    assert ps == 'PS00000'
-    v_over_max = genesys.VOL['MAX'] + 1           ;  print(v_over_max)
-    v = genesys.VOL['Format'].format(v_over_max)  ;  print(v)
-    genesys._write_command(':VOL{};'.format(v))
-    ps = genesys.get_register_program()           ;  print(ps)
-    assert ps == 'PS00010'
-    genesys.clear_registers()
-    ps = genesys.get_register_program()           ;  print(ps)
-    assert ps == 'PS00000'
-
-    a_over_max = genesys.CUR['MAX'] + 1           ;  print(a_over_max)
-    a = genesys.CUR['Format'].format(a_over_max)  ;  print(a)
-    genesys._write_command(':CUR{};'.format(a))
-    ps = genesys.get_register_program()           ;  print(ps)
-    assert ps == 'PS00001'
-    genesys.clear_registers()
-    ps = genesys.get_register_program()           ;  print(ps)
-    assert ps == 'PS00000'
-    return None
-
 def test_get_register_alarm(genesys: Genesys) -> None:
     reg = genesys.get_register_alarm()         ;  print(reg)
     assert type(reg) == str
@@ -609,12 +584,10 @@ def test__read_response(genesys: Genesys) -> None:
     assert '\r' not in r
     return None
 
-def test__write_command(genesys: Genesys) -> None:
-    assert genesys._write_command('IDN?') is None
-    r = genesys.serial_port.readline().decode('utf-8')  ;  print(r)
+def test__write_command_read_response(genesys: Genesys) -> None:
+    r = genesys._write_command_read_response('IDN?\r')
     assert type(r) == str
     assert 'LAMBDA,GEN' in r
-    assert '\r' in r
     return None
 
 def test__validate_binary_state() -> None:

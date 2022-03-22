@@ -313,8 +313,9 @@ class Genesys(object):
                                  'Under Voltage'        : float}
             GEN command:  DVC?
         """
-        va = self.command_interrogative('DCV?')
+        va = self.command_interrogative('DVC?')
         va = va.split(',')
+        print(va)
         for i in range(0, len(va), 1): va[i] = float(va[i])
         return {'Voltage Measured'      : va[0],
                 'Voltage Programmed'    : va[1],
@@ -406,13 +407,13 @@ class Genesys(object):
         """ Programs GEN Foldback delay, in addition to standard 250 milli-seconds
             Inputs:        int:  milli_seconds in range (0, 256, 1)
             Outputs:       None
-            GEN commands:  FDB {milli_seconds}
+            GEN commands:  FBD {milli_seconds}
         """
         if type(milli_seconds) != int:
             raise TypeError('Invalid Foldback Delay, must be an integer.')
         if not milli_seconds in range(0, 256, 1):
             raise ValueError('Invalid Foldback Delay, must be in range(0, 256, 1)')
-        self.command_imperative('FDB {}'.format(milli_seconds))
+        self.command_imperative('FBD {}'.format(milli_seconds))
         return None
 
     def get_foldback_delay(self) -> int:
@@ -641,8 +642,7 @@ class Genesys(object):
             Outputs:      int, Status Event register contents in 2-digit hex
             GEN command:  SEVE?
         """
-        rse = int(self.command_interrogative('SEVE?'))
-        return format(rse,'X')
+        return int(self.command_interrogative('SEVE?'))
 
     def get_register_fault_condition(self) -> int:
         """ Reads GEN Fault Condition register
@@ -650,8 +650,7 @@ class Genesys(object):
             Outputs:      int, Fault Condition register contents in 2-digit hex
             GEN command:  FLT?
         """
-        flt = int(self.command_interrogative('FLT?'))
-        return format(flt,'X')
+        return int(self.command_interrogative('FLT?'))
 
     def get_register_fault_enable(self) -> int:
         """ Reads GEN Fault Enable register
@@ -659,8 +658,7 @@ class Genesys(object):
             Outputs:      int, Fault Enable register contents in 2-digit hex
             GEN command:  FENA?
         """
-        rfe = int(self.command_interrogative('FENA?'))
-        return format(rfe,'X')
+        return int(self.command_interrogative('FENA?'))
 
     def set_register_fault_enable(self, fault_enable: int) -> None:
         """ Programs GEN Fault Enable register
@@ -690,8 +688,7 @@ class Genesys(object):
             Outputs:      int, Fault Event register contents in 2-digit hex
             GEN command:  FEVE?
         """
-        rfe = int(self.command_interrogative('FEVE?'))
-        return format(rfe,'X')
+        return int(self.command_interrogative('FEVE?'))
 
     def get_register_status_condition(self) -> int:
         """ Reads GEN Status Condition register
@@ -699,8 +696,7 @@ class Genesys(object):
             Outputs:      int, Status Condition register contents in 2-digit hex
             GEN command:  STAT?
         """
-        rsc = int(self.command_interrogative('STAT?'))
-        return format(rsc,'X')
+        return int(self.command_interrogative('STAT?'))
 
     def set_register_status_condition(self, status_enable: int) -> None:
         """ Programs GEN Status Condition register
@@ -730,8 +726,7 @@ class Genesys(object):
             Outputs:      int, Status Enable register contents in 2-digit hex
             GEN command:  SENA?
         """
-        rse = int(self.command_interrogative('SENA?'))
-        return format(rse,'X')
+        return int(self.command_interrogative('SENA?'))
 
     def command_imperative(self, command: str) -> None:
         """ Reads GEN Status Event register
