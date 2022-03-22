@@ -125,9 +125,11 @@ def test_set_remote_mode(genesys: Genesys) -> None:
     with pytest.raises(ValueError):
         genesys.set_remote_mode('Invalid Remote Mode, so should fail.')
     assert genesys.set_remote_mode('REM') is None
-    assert genesys.get_remote_mode == 'REM'
+    rm = genesys.get_remote_mode
+    assert rm == 'REM'
     genesys.set_remote_mode('LLO')
-    assert genesys.get_remote_mode == 'LLO'
+    rm = genesys.get_remote_mode
+    assert rm == 'LLO'
     return None
 
 def test_get_remote_mode(genesys: Genesys) -> None:
@@ -174,9 +176,9 @@ def test_get_date(genesys: Genesys) -> None:
 
 def test_program_voltage(genesys: Genesys) -> None:
     with pytest.raises(TypeError):
-        genesys.set_voltage('Invalid Voltage, so should fail.')
+        genesys.program_voltage('Invalid Voltage, so should fail.')
     with pytest.raises(ValueError):
-        genesys.set_voltage(genesys.VOL['MAX'] + 1)
+        genesys.program_voltage(genesys.VOL['MAX'] + 1)
     genesys.set_power_state('ON')
     v = genesys.VOL['MAX'] / 2              ;  print(v)
     assert genesys.program_voltage(v) is None
@@ -529,24 +531,6 @@ def command_imperative(self, command: str) -> None:
     """
     assert command[-1] != '?' # All Genesys imperative commands don't end with '?', and do respond with 'OK'.
     assert self._write_command_read_response(command + '\r') == 'OK'
-    return None
-
-def test_get_register_alarm(genesys: Genesys) -> None:
-    reg = genesys.get_register_alarm()         ;  print(reg)
-    assert type(reg) == str
-    assert format_test(reg, 'AL01010', ('0','1')) is None
-    return None
-
-def test_get_register_operation(genesys: Genesys) -> None:
-    reg = genesys.get_register_operation()     ;  print(reg)
-    assert type(reg) == str
-    assert format_test(reg, 'OS00010000', ('0','1')) is None
-    return None
-
-def test_get_register_program(genesys: Genesys) -> None:
-    reg = genesys.get_register_program()       ;  print(reg)
-    assert type(reg) == str
-    assert format_test(reg, 'PS00000', ('0','1')) is None
     return None
 
 def format_test(reg: str, reg_format: str, valid_chars: tuple) -> None:

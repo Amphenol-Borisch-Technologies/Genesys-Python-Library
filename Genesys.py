@@ -315,7 +315,6 @@ class Genesys(object):
         """
         va = self.command_interrogative('DVC?')
         va = va.split(',')
-        print(va)
         for i in range(0, len(va), 1): va[i] = float(va[i])
         return {'Voltage Measured'      : va[0],
                 'Voltage Programmed'    : va[1],
