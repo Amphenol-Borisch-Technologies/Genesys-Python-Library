@@ -635,283 +635,283 @@ class Genesys(object):
         # Genesys User Manual paragraph 7.9.3, 'Read Power-On Time'.
         return Genesys._fast_query(serial_port, address, bytes([0xA6, address]), 12)
 
-def get_register_status_event(self) -> int:
-    """ Reads GEN Status Event register
-        Inputs:       None
-        Outputs:      int, Status Event register contents in 2-digit hex
-        GEN command:  SEVE?
-    """
-    rse = int(self.command_interrogative('SEVE?'))
-    return format(rse,'X')
+    def get_register_status_event(self) -> int:
+        """ Reads GEN Status Event register
+            Inputs:       None
+            Outputs:      int, Status Event register contents in 2-digit hex
+            GEN command:  SEVE?
+        """
+        rse = int(self.command_interrogative('SEVE?'))
+        return format(rse,'X')
 
-def get_register_fault_condition(self) -> int:
-    """ Reads GEN Fault Condition register
-        Inputs:       None
-        Outputs:      int, Fault Condition register contents in 2-digit hex
-        GEN command:  FLT?
-    """
-    flt = int(self.command_interrogative('FLT?'))
-    return format(flt,'X')
+    def get_register_fault_condition(self) -> int:
+        """ Reads GEN Fault Condition register
+            Inputs:       None
+            Outputs:      int, Fault Condition register contents in 2-digit hex
+            GEN command:  FLT?
+        """
+        flt = int(self.command_interrogative('FLT?'))
+        return format(flt,'X')
 
-def get_register_fault_enable(self) -> int:
-    """ Reads GEN Fault Enable register
-        Inputs:       None
-        Outputs:      int, Fault Enable register contents in 2-digit hex
-        GEN command:  FENA?
-    """
-    rfe = int(self.command_interrogative('FENA?'))
-    return format(rfe,'X')
+    def get_register_fault_enable(self) -> int:
+        """ Reads GEN Fault Enable register
+            Inputs:       None
+            Outputs:      int, Fault Enable register contents in 2-digit hex
+            GEN command:  FENA?
+        """
+        rfe = int(self.command_interrogative('FENA?'))
+        return format(rfe,'X')
 
-def set_register_fault_enable(self, fault_enable: int) -> None:
-    """ Programs GEN Fault Enable register
-        Inputs:       fault_enable: int, desired Fault Enable register contents in 2-digit hex
-        Outputs:      None
-        GEN command:  FENA {}
-        - Class Genesys supports Service Requests, but SRQ messages are be handled by the client application.
-        - From 'TDK-Lambda Genesys Power Supplies User Manual, 83-507-013':
-            - Since Service Request messages may be sent from any supply at any time,
-            there is a chance they can collide with other messages from other supplies.
-            - Your controller software has to be sophisticated enough to read messages that
-            may come at any time, and to recover if messages are corrupted by collisions.
-            - If you need Service Request messaging, please contact TDK-Lambda for assistance.
-            We can provide several special communication commands and settings that will help with this.
-    """
-    if type(fault_enable) != int:
-        raise TypeError('Invalid Fault Enable, must be an int.')
-    if not (0 <= fault_enable <= 255):
-        raise ValueError('Invalid Fault Enable, must be in range (0..255).')
-    fault_enable = format(fault_enable,'X')
-    self.command_imperative('FENA {}'.format(fault_enable))
-    return None
+    def set_register_fault_enable(self, fault_enable: int) -> None:
+        """ Programs GEN Fault Enable register
+            Inputs:       fault_enable: int, desired Fault Enable register contents in 2-digit hex
+            Outputs:      None
+            GEN command:  FENA {}
+            - Class Genesys supports Service Requests, but SRQ messages are be handled by the client application.
+            - From 'TDK-Lambda Genesys Power Supplies User Manual, 83-507-013':
+                - Since Service Request messages may be sent from any supply at any time,
+                there is a chance they can collide with other messages from other supplies.
+                - Your controller software has to be sophisticated enough to read messages that
+                may come at any time, and to recover if messages are corrupted by collisions.
+                - If you need Service Request messaging, please contact TDK-Lambda for assistance.
+                We can provide several special communication commands and settings that will help with this.
+        """
+        if type(fault_enable) != int:
+            raise TypeError('Invalid Fault Enable, must be an int.')
+        if not (0 <= fault_enable <= 255):
+            raise ValueError('Invalid Fault Enable, must be in range (0..255).')
+        fault_enable = format(fault_enable,'X')
+        self.command_imperative('FENA {}'.format(fault_enable))
+        return None
 
-def get_register_fault_event(self) -> int:
-    """ Reads GEN Fault Event register
-        Inputs:       None
-        Outputs:      int, Fault Event register contents in 2-digit hex
-        GEN command:  FEVE?
-    """
-    rfe = int(self.command_interrogative('FEVE?'))
-    return format(rfe,'X')
+    def get_register_fault_event(self) -> int:
+        """ Reads GEN Fault Event register
+            Inputs:       None
+            Outputs:      int, Fault Event register contents in 2-digit hex
+            GEN command:  FEVE?
+        """
+        rfe = int(self.command_interrogative('FEVE?'))
+        return format(rfe,'X')
 
-def get_register_status_condition(self) -> int:
-    """ Reads GEN Status Condition register
-        Inputs:       None
-        Outputs:      int, Status Condition register contents in 2-digit hex
-        GEN command:  STAT?
-    """
-    rsc = int(self.command_interrogative('STAT?'))
-    return format(rsc,'X')
+    def get_register_status_condition(self) -> int:
+        """ Reads GEN Status Condition register
+            Inputs:       None
+            Outputs:      int, Status Condition register contents in 2-digit hex
+            GEN command:  STAT?
+        """
+        rsc = int(self.command_interrogative('STAT?'))
+        return format(rsc,'X')
 
-def set_register_status_condition(self, status_enable: int) -> None:
-    """ Programs GEN Status Condition register
-        Inputs:       status_enable: int, desire Status Condition register contents in 2-digit hex
-        Outputs:      None
-        GEN command:  SENA {}
-        - Class Genesys supports Service Requests, but SRQ messages are be handled by the client application.
-        - From 'TDK-Lambda Genesys Power Supplies User Manual, 83-507-013':
-            - Since Service Request messages may be sent from any supply at any time,
-            there is a chance they can collide with other messages from other supplies.
-            - Your controller software has to be sophisticated enough to read messages that
-            may come at any time, and to recover if messages are corrupted by collisions.
-            - If you need Service Request messaging, please contact TDK-Lambda for assistance.
-            We can provide several special communication commands and settings that will help with this.
-    """
-    if type(status_enable) != int:
-        raise TypeError('Invalid Status Enable, must be an int.')
-    if not (0 <= status_enable <= 255):
-        raise ValueError('Invalid Status Enable, must be in range (0..255).')
-    status_enable = format(status_enable,'X')
-    self.command_imperative('SENA {}'.format(status_enable))
-    return None
+    def set_register_status_condition(self, status_enable: int) -> None:
+        """ Programs GEN Status Condition register
+            Inputs:       status_enable: int, desire Status Condition register contents in 2-digit hex
+            Outputs:      None
+            GEN command:  SENA {}
+            - Class Genesys supports Service Requests, but SRQ messages are be handled by the client application.
+            - From 'TDK-Lambda Genesys Power Supplies User Manual, 83-507-013':
+                - Since Service Request messages may be sent from any supply at any time,
+                there is a chance they can collide with other messages from other supplies.
+                - Your controller software has to be sophisticated enough to read messages that
+                may come at any time, and to recover if messages are corrupted by collisions.
+                - If you need Service Request messaging, please contact TDK-Lambda for assistance.
+                We can provide several special communication commands and settings that will help with this.
+        """
+        if type(status_enable) != int:
+            raise TypeError('Invalid Status Enable, must be an int.')
+        if not (0 <= status_enable <= 255):
+            raise ValueError('Invalid Status Enable, must be in range (0..255).')
+        status_enable = format(status_enable,'X')
+        self.command_imperative('SENA {}'.format(status_enable))
+        return None
 
-def get_register_status_enable(self) -> int:
-    """ Reads GEN Status Enable register
-        Inputs:       None
-        Outputs:      int, Status Enable register contents in 2-digit hex
-        GEN command:  SENA?
-    """
-    rse = int(self.command_interrogative('SENA?'))
-    return format(rse,'X')
+    def get_register_status_enable(self) -> int:
+        """ Reads GEN Status Enable register
+            Inputs:       None
+            Outputs:      int, Status Enable register contents in 2-digit hex
+            GEN command:  SENA?
+        """
+        rse = int(self.command_interrogative('SENA?'))
+        return format(rse,'X')
 
-def command_imperative(self, command: str) -> None:
-    """ Reads GEN Status Event register
-        Inputs:       command: str, imperative command; a command to do something
-        Outputs:      None
-    """
-    assert command[-1] != '?' # All Genesys imperative commands don't end with '?', and do respond with 'OK'.
-    assert self._write_command_read_response(command + '\r') == 'OK'
-    return None
+    def command_imperative(self, command: str) -> None:
+        """ Reads GEN Status Event register
+            Inputs:       command: str, imperative command; a command to do something
+            Outputs:      None
+        """
+        assert command[-1] != '?' # All Genesys imperative commands don't end with '?', and do respond with 'OK'.
+        assert self._write_command_read_response(command + '\r') == 'OK'
+        return None
 
-def command_interrogative(self, command: str) -> str:
-    """ Reads GEN Status Event register
-        Inputs:       command: str, interrogative command; a question or query
-        Outputs:      str, response from interrogative command
-    """
-    assert command[-1] == '?' # All Genesys interrogative commands do end with '?', and don't respond with 'OK'.
-    assert self._write_command_read_response(command + '\r') != 'OK'
-    return self.last_response
+    def command_interrogative(self, command: str) -> str:
+        """ Reads GEN Status Event register
+            Inputs:       command: str, interrogative command; a question or query
+            Outputs:      str, response from interrogative command
+        """
+        assert command[-1] == '?' # All Genesys interrogative commands do end with '?', and don't respond with 'OK'.
+        assert self._write_command_read_response(command + '\r') != 'OK'
+        return self.last_response
 
-def _write_command_read_response(self, command: str) -> str:
-    """ Internal method to write GEN commands & read their responses through pySerial serial object
-        Not intended for external use.
-    """
-    # Reference Genesys User Manual section 7.5, 'Communication Interface Protocol'
-    # Does *not* utilize checksums as detailed in pargraphs 7.5.5.
-    if (self.serial_port.port not in Genesys.listening_addresses) or (Genesys.listening_addresses[self.serial_port.port] != self.address):
-        Genesys.listening_addresses.update({self.serial_port.port : self.address})
-        # Genesi only need to be addressed at the begininng of a command sequence.
-        # The most recently addressed Genesys remains in "listen" mode until a different Genesys is addressed.
-        # If the currently addressed & listening Genesys is also the Genesys object being commanded, then skip re-addressing it, avoiding delay.
-        adr = 'ADR {}\r'.format(self.address)
-        adr = adr.encode('utf-8')           # pySerial library requires UTF-8 byte encoding/decoding, not string.
-        self.serial_port.write(adr)
+    def _write_command_read_response(self, command: str) -> str:
+        """ Internal method to write GEN commands & read their responses through pySerial serial object
+            Not intended for external use.
+        """
+        # Reference Genesys User Manual section 7.5, 'Communication Interface Protocol'
+        # Does *not* utilize checksums as detailed in pargraphs 7.5.5.
+        if (self.serial_port.port not in Genesys.listening_addresses) or (Genesys.listening_addresses[self.serial_port.port] != self.address):
+            Genesys.listening_addresses.update({self.serial_port.port : self.address})
+            # Genesi only need to be addressed at the begininng of a command sequence.
+            # The most recently addressed Genesys remains in "listen" mode until a different Genesys is addressed.
+            # If the currently addressed & listening Genesys is also the Genesys object being commanded, then skip re-addressing it, avoiding delay.
+            adr = 'ADR {}\r'.format(self.address)
+            adr = adr.encode('utf-8')           # pySerial library requires UTF-8 byte encoding/decoding, not string.
+            self.serial_port.write(adr)
+            time.sleep(0.150)
+            self.last_command = adr
+            assert self._read_response() == 'OK'
+        command = command.encode('utf-8')
+        self.serial_port.write(command)
         time.sleep(0.150)
-        self.last_command = adr
-        assert self._read_response() == 'OK'
-    command = command.encode('utf-8')
-    self.serial_port.write(command)
-    time.sleep(0.150)
-    self.last_command = command
-    return self._read_response()
+        self.last_command = command
+        return self._read_response()
 
-def _read_response(self) -> str:
-    """ Internal method to read GEN responses through Pyserial serial object
-        Not intended for external use.
-    """
-    # Reference Genesys User Manual section 7.5, 'Communication Interface Protocol'
-    # Does *not* utilize checksums as detailed in pargraphs 7.5.5.
-    response = self.serial_port.readline()
-    response = response.decode('utf-8')     # pySerial library requires UTF-8 byte encoding/decoding, not string.
-    response = response.replace('\r','')    # Per Genesys Manual, paragraph 7.5.3, Genesi append '\r' to their responses; remove them.
-    self.last_response = response
-    return self.last_response
+    def _read_response(self) -> str:
+        """ Internal method to read GEN responses through Pyserial serial object
+            Not intended for external use.
+        """
+        # Reference Genesys User Manual section 7.5, 'Communication Interface Protocol'
+        # Does *not* utilize checksums as detailed in pargraphs 7.5.5.
+        response = self.serial_port.readline()
+        response = response.decode('utf-8')     # pySerial library requires UTF-8 byte encoding/decoding, not string.
+        response = response.replace('\r','')    # Per Genesys Manual, paragraph 7.5.3, Genesi append '\r' to their responses; remove them.
+        self.last_response = response
+        return self.last_response
 
-@staticmethod
-def _validate_binary_state(binary_state: str) -> str:
-    """ Internal method to error check ('OFF', 'ON') binary states
-        Not intended for external use.
-    """
-    if type(binary_state) != str:
-        raise TypeError('Invalid Binary State, must be a str.')
-    binary_state = binary_state.upper()
-    if binary_state not in ('OFF', 'ON'):
-        raise ValueError('Invalid Binary State, must be in (''OFF'', ''ON'').')
-    return binary_state
+    @staticmethod
+    def _validate_binary_state(binary_state: str) -> str:
+        """ Internal method to error check ('OFF', 'ON') binary states
+            Not intended for external use.
+        """
+        if type(binary_state) != str:
+            raise TypeError('Invalid Binary State, must be a str.')
+        binary_state = binary_state.upper()
+        if binary_state not in ('OFF', 'ON'):
+            raise ValueError('Invalid Binary State, must be in (''OFF'', ''ON'').')
+        return binary_state
 
-@staticmethod
-def _group_write_command(serial_port: serial, command: str) -> None:
-    """ Internal method to write GEN group commands through pySerial serial object
-        Not intended for external use.
-    """
-    if serial_port.baudrate not in Genesys.BAUD_RATES:
-        raise ValueError('Invalid Baud Rate, must be in list ' + str(Genesys.BAUD_RATES) + '.')
-    serial_port.write(command.encode('utf-8'))
-    # pySerial library requires UTF-8 byte encoding/decoding, not string.
-    time.sleep(0.200)
-    # Per Genesys Manual paragraph 7.8.1, Genesi require 200 milliSeconds delay after group commands.
-    return None
+    @staticmethod
+    def _group_write_command(serial_port: serial, command: str) -> None:
+        """ Internal method to write GEN group commands through pySerial serial object
+            Not intended for external use.
+        """
+        if serial_port.baudrate not in Genesys.BAUD_RATES:
+            raise ValueError('Invalid Baud Rate, must be in list ' + str(Genesys.BAUD_RATES) + '.')
+        serial_port.write(command.encode('utf-8'))
+        # pySerial library requires UTF-8 byte encoding/decoding, not string.
+        time.sleep(0.200)
+        # Per Genesys Manual paragraph 7.8.1, Genesi require 200 milliSeconds delay after group commands.
+        return None
 
-@staticmethod
-def group_reset(serial_port: serial) -> None:
-    """ Group reset command; brings GEN group supplies to a safe and known state
-        Inputs:       serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies       
-        Outputs:      None
-        GEN command:  GRST
-        Reset states:
-        1) Output voltage: 0
-        2) Output current: 0
-        3) Output: OFF
-        4) Auto-start: OFF
-        5) Remote: REM
-        6) OVP: maximum
-        7) UVL: 0
-        8) The FLT & STAT Conditional registers are updated, other registers are not changed
-        9) Non-Latching faults FB, OVP & SO are cleared, OUT fault remains
-    """
-    Genesys._group_write_command(serial_port, 'GRST')
-    return None
+    @staticmethod
+    def group_reset(serial_port: serial) -> None:
+        """ Group reset command; brings GEN group supplies to a safe and known state
+            Inputs:       serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies       
+            Outputs:      None
+            GEN command:  GRST
+            Reset states:
+            1) Output voltage: 0
+            2) Output current: 0
+            3) Output: OFF
+            4) Auto-start: OFF
+            5) Remote: REM
+            6) OVP: maximum
+            7) UVL: 0
+            8) The FLT & STAT Conditional registers are updated, other registers are not changed
+            9) Non-Latching faults FB, OVP & SO are cleared, OUT fault remains
+        """
+        Genesys._group_write_command(serial_port, 'GRST')
+        return None
 
-@staticmethod
-def group_program_voltage(serial_port: serial, volts: float) -> None:
-    """ Group programs GEN voltages
-        Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies       
-                        - volts: float, desired voltage
-        Outputs:      None
-        GEN command:  GPV {volts}
-        Assumptions:  - Desired voltage within capabilities of all Genesys supplies connected to serial_port.
-                        - Desired voltage within UVL/OVP settings of all Genesys supplies connected to serial_port.
-    """
-    if type(volts) not in (int, float):
-        raise TypeError('Invalid Voltage, must be a real number.')
-    volts = '{:0>6.3f}'.format(volts)
-    Genesys._group_write_command(serial_port, 'GPV {}'.format(volts))
-    return None
+    @staticmethod
+    def group_program_voltage(serial_port: serial, volts: float) -> None:
+        """ Group programs GEN voltages
+            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies       
+                            - volts: float, desired voltage
+            Outputs:      None
+            GEN command:  GPV {volts}
+            Assumptions:  - Desired voltage within capabilities of all Genesys supplies connected to serial_port.
+                            - Desired voltage within UVL/OVP settings of all Genesys supplies connected to serial_port.
+        """
+        if type(volts) not in (int, float):
+            raise TypeError('Invalid Voltage, must be a real number.')
+        volts = '{:0>6.3f}'.format(volts)
+        Genesys._group_write_command(serial_port, 'GPV {}'.format(volts))
+        return None
 
-@staticmethod
-def group_program_current(serial_port: serial, amperes: float) -> None:
-    """ Group programs GEN amperages
-        Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies 
-                        - amperes: float, desired amperage
-        Outputs:      None
-        GEN command:  GPC {amperes}
-        Assumptions:  - Desired amperage within capabilities of all Genesys supplies connected to serial_port.
-    """
-    if type(amperes) not in (int, float):
-        raise TypeError('Invalid Amperage, must be a real number.')
-    amperes = '{:0>6.3f}'.format(amperes)
-    Genesys._group_write_command(serial_port, 'GPC {}'.format(amperes))
-    return None
+    @staticmethod
+    def group_program_current(serial_port: serial, amperes: float) -> None:
+        """ Group programs GEN amperages
+            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies 
+                            - amperes: float, desired amperage
+            Outputs:      None
+            GEN command:  GPC {amperes}
+            Assumptions:  - Desired amperage within capabilities of all Genesys supplies connected to serial_port.
+        """
+        if type(amperes) not in (int, float):
+            raise TypeError('Invalid Amperage, must be a real number.')
+        amperes = '{:0>6.3f}'.format(amperes)
+        Genesys._group_write_command(serial_port, 'GPC {}'.format(amperes))
+        return None
 
-@staticmethod
-def group_set_power_state(serial_port: serial, binary_state: str) -> None:
-    """ Group programs GEN power states
-        Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies 
-                        - binary_state: str in ('ON, 'OFF')
-        Outputs:      None
-        GEN command:  GOUT {binary_state}
-    """
-    binary_state = Genesys._validate_binary_state(binary_state)
-    Genesys._group_write_command(serial_port, 'GOUT {}'.format(binary_state))
-    return None
+    @staticmethod
+    def group_set_power_state(serial_port: serial, binary_state: str) -> None:
+        """ Group programs GEN power states
+            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies 
+                            - binary_state: str in ('ON, 'OFF')
+            Outputs:      None
+            GEN command:  GOUT {binary_state}
+        """
+        binary_state = Genesys._validate_binary_state(binary_state)
+        Genesys._group_write_command(serial_port, 'GOUT {}'.format(binary_state))
+        return None
 
-@staticmethod
-def group_save_settings(serial_port: serial) -> None:
-    """ Group saves GEN supplies 'Last Settings' into memory
-        Inputs:       serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies 
-        Outputs:      None
-        GEN command:  GSAV
-        Current settings saved to GEN 'Last Settings' memory:
-                1) OUT ON or OFF
-                2) Output Voltage setting (PV setting)
-                3) Output Current setting (PC setting)
-                4) OVP level
-                5) UVL level
-                6) FOLD setting
-                7) Start-up mode (Safe-start or Auto-restart)
-                8) Remote/Local: If the last setting was Local Lockout, (latched mode), the supply will return to Remote mode (non-latched).
-                9) Locked/Unlocked Front Panel (LFP/UFP)
-            10) Master/Slave setting
-    """
-    Genesys._group_write_command(serial_port, 'GSAV')
-    return None
+    @staticmethod
+    def group_save_settings(serial_port: serial) -> None:
+        """ Group saves GEN supplies 'Last Settings' into memory
+            Inputs:       serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies 
+            Outputs:      None
+            GEN command:  GSAV
+            Current settings saved to GEN 'Last Settings' memory:
+                    1) OUT ON or OFF
+                    2) Output Voltage setting (PV setting)
+                    3) Output Current setting (PC setting)
+                    4) OVP level
+                    5) UVL level
+                    6) FOLD setting
+                    7) Start-up mode (Safe-start or Auto-restart)
+                    8) Remote/Local: If the last setting was Local Lockout, (latched mode), the supply will return to Remote mode (non-latched).
+                    9) Locked/Unlocked Front Panel (LFP/UFP)
+                10) Master/Slave setting
+        """
+        Genesys._group_write_command(serial_port, 'GSAV')
+        return None
 
-@staticmethod
-def group_recall_settings(serial_port: serial) -> None:
-    """ Group recalls GEN supplies 'Last Settings' from memory
-        Inputs:       serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies 
-        Outputs:      None
-        GEN command:  GRCL
-        Settings recalled as current settings from GEN 'Last Settings' memory:
-                1) OUT ON or OFF
-                2) Output Voltage setting (PV setting)
-                3) Output Current setting (PC setting)
-                4) OVP level
-                5) UVL level
-                6) FOLD setting
-                7) Start-up mode (Safe-start or Auto-restart)
-                8) Remote/Local: If the last setting was Local Lockout, (latched mode), the supply will return to Remote mode (non-latched).
-                9) Locked/Unlocked Front Panel (LFP/UFP)
-            10) Master/Slave setting
-    """
-    Genesys._group_write_command(serial_port, 'GRCL')
-    return None
+    @staticmethod
+    def group_recall_settings(serial_port: serial) -> None:
+        """ Group recalls GEN supplies 'Last Settings' from memory
+            Inputs:       serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies 
+            Outputs:      None
+            GEN command:  GRCL
+            Settings recalled as current settings from GEN 'Last Settings' memory:
+                    1) OUT ON or OFF
+                    2) Output Voltage setting (PV setting)
+                    3) Output Current setting (PC setting)
+                    4) OVP level
+                    5) UVL level
+                    6) FOLD setting
+                    7) Start-up mode (Safe-start or Auto-restart)
+                    8) Remote/Local: If the last setting was Local Lockout, (latched mode), the supply will return to Remote mode (non-latched).
+                    9) Locked/Unlocked Front Panel (LFP/UFP)
+                10) Master/Slave setting
+        """
+        Genesys._group_write_command(serial_port, 'GRCL')
+        return None
