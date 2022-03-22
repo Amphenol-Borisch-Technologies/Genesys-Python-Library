@@ -644,7 +644,7 @@ def get_register_status_event(self) -> int:
     rse = int(self.command_interrogative('SEVE?'))
     return format(rse,'X')
 
-def get_register_fault_condition(genesys: Genesys) -> None:
+def get_register_fault_condition(self) -> int:
     """ Reads GEN Fault Condition register
         Inputs:       None
         Outputs:      int, Fault Condition register contents in 2-digit hex
