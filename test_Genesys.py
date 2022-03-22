@@ -145,7 +145,7 @@ def test_get_ms_parallel_operation(genesys: Genesys) -> None:
 def test_repeat_last_command(genesys: Genesys) -> None:
     idn = genesys.get_identity()
     rlc = genesys.repeat_last_command()
-    assert idn = rlc
+    assert idn == rlc
     return None
 
 def test_get_identity(genesys: Genesys) -> None:
@@ -436,7 +436,7 @@ def get_register_fault_condition(genesys: Genesys) -> None:
         Outputs:      int, Fault Condition register contents in 2-digit hex
         GEN command:  FLT?
     """
-    flt = int(self.command_interrogative('FLT?'))
+    flt = int(genesys.command_interrogative('FLT?'))
     return format(flt,'X')
 
 def get_register_fault_enable(self) -> int:
