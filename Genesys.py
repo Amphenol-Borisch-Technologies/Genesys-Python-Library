@@ -758,7 +758,7 @@ class Genesys(object):
             # If the currently addressed & listening Genesys is also the Genesys object being commanded, then skip re-addressing it, avoiding delay.
             adr = 'ADR {}\r'.format(self.address)
             adr = adr.encode('utf-8')           # pySerial library requires UTF-8 byte encoding/decoding, not string.
-            time.sleep(0.150)
+            time.sleep(0.100)
             # 7.5.2 Addressing:
             # 'The Address is sent separately from the command. It is recommended to add 100msec delay between query or sent command to next unit addressing.'
             self.serial_port.write(adr)

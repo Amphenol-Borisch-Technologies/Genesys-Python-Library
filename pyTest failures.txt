@@ -1,0 +1,130 @@
+./test_Genesys.py::test_get_foldback_delay[0] Failed: [undefined]AssertionError: assert <class 'str'> == int
+ +  where <class 'str'> = type('C01')
+genesys = <Genesys.Genesys object at 0x0000021CAEC9AF80>
+
+    def test_get_foldback_delay(genesys: Genesys) -> None:
+        fd = genesys.get_foldback_delay()
+>       assert type(fd) == int
+E       AssertionError: assert <class 'str'> == int
+E        +  where <class 'str'> = type('C01')
+
+test_Genesys.py:323: AssertionError
+
+
+
+./test_Genesys.py::test_get_ms_parallel_operation[0] Failed: [undefined]AssertionError: assert <class 'str'> == int
+ +  where <class 'str'> = type('C01')
+genesys = <Genesys.Genesys object at 0x0000021CAEBF36A0>
+
+    def test_get_ms_parallel_operation(genesys: Genesys) -> None:
+        mspo = genesys.get_ms_parallel_operation()
+>       assert type(mspo) == int
+E       AssertionError: assert <class 'str'> == int
+E        +  where <class 'str'> = type('C01')
+
+test_Genesys.py:145: AssertionError
+
+
+
+./test_Genesys.py::test_get_ms_parallel_operation[0] Failed: [undefined]AssertionError: assert <class 'str'> == int
+ +  where <class 'str'> = type('C01')
+genesys = <Genesys.Genesys object at 0x0000021CAEBF36A0>
+
+    def test_get_ms_parallel_operation(genesys: Genesys) -> None:
+        mspo = genesys.get_ms_parallel_operation()
+>       assert type(mspo) == int
+E       AssertionError: assert <class 'str'> == int
+E        +  where <class 'str'> = type('C01')
+
+test_Genesys.py:145: AssertionError
+
+
+
+./test_Genesys.py::test_reset_foldback_delay[0] Failed: [undefined]AssertionError
+genesys = <Genesys.Genesys object at 0x0000021CAEC9C3D0>
+
+    def test_reset_foldback_delay(genesys: Genesys) -> None:
+>       assert genesys.reset_foldback_delay() is None
+
+test_Genesys.py:328: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+Genesys.py:432: in reset_foldback_delay
+    self.command_imperative('FBDRST')
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <Genesys.Genesys object at 0x0000021CAEC9C3D0>, command = 'FBDRST'
+
+    def command_imperative(self, command: str) -> None:
+        """ Reads GEN Status Event register
+            Inputs:       command: str, imperative command; a command to do something
+            Outputs:      None
+        """
+        assert command[-1] != '?' # All Genesys imperative commands don't end with '?', and do respond with 'OK'.
+>       assert self._write_command_read_response(command + '\r') == 'OK'
+E       AssertionError
+
+Genesys.py:736: AssertionError
+
+
+
+./test_Genesys.py::test_set_additional_foldback_delay[0] Failed: [undefined]AssertionError
+genesys = <Genesys.Genesys object at 0x0000021CAEDA36D0>
+
+    def test_set_additional_foldback_delay(genesys: Genesys) -> None:
+        with pytest.raises(TypeError):
+            genesys.set_additional_foldback_delay('Invalid Foldback Delay, so should fail.')
+        with pytest.raises(ValueError):
+            genesys.set_additional_foldback_delay(256)
+        for sd in (0, 255):
+>           assert genesys.set_additional_foldback_delay(sd) is None
+
+test_Genesys.py:313: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+Genesys.py:415: in set_additional_foldback_delay
+    self.command_imperative('FBD {}'.format(milli_seconds))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <Genesys.Genesys object at 0x0000021CAEDA36D0>, command = 'FBD 0'
+
+    def command_imperative(self, command: str) -> None:
+        """ Reads GEN Status Event register
+            Inputs:       command: str, imperative command; a command to do something
+            Outputs:      None
+        """
+        assert command[-1] != '?' # All Genesys imperative commands don't end with '?', and do respond with 'OK'.
+>       assert self._write_command_read_response(command + '\r') == 'OK'
+E       AssertionError
+
+Genesys.py:736: AssertionError
+
+
+
+./test_Genesys.py::test_set_filter_frequency[0] Failed: [undefined]AssertionError
+genesys = <Genesys.Genesys object at 0x0000021CAECC81F0>
+
+    def test_set_filter_frequency(genesys: Genesys) -> None:
+        with pytest.raises(TypeError):
+            genesys.set_filter_frequency('Invalid Frequency, so should fail.')
+        with pytest.raises(ValueError):
+            genesys.set_filter_frequency(42)
+        for hz in (18,23,46):
+>           assert genesys.set_filter_frequency(hz) is None
+
+test_Genesys.py:274: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+Genesys.py:358: in set_filter_frequency
+    self.command_imperative('FILTER {}'.format(hertz))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <Genesys.Genesys object at 0x0000021CAECC81F0>, command = 'FILTER 18'
+
+    def command_imperative(self, command: str) -> None:
+        """ Reads GEN Status Event register
+            Inputs:       command: str, imperative command; a command to do something
+            Outputs:      None
+        """
+        assert command[-1] != '?' # All Genesys imperative commands don't end with '?', and do respond with 'OK'.
+>       assert self._write_command_read_response(command + '\r') == 'OK'
+E       AssertionError
+
+Genesys.py:736: AssertionError
