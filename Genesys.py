@@ -364,7 +364,7 @@ class Genesys(object):
             Outputs:      int, GEN low-pass filter frequency of A/D Converter for voltage & current measurement
             GEN command:  FILTER?
         """
-        return self.command_imperative('FILTER?')
+        return self.command_interrogative('FILTER?')
 
     def set_power_state(self, binary_state: str) -> None:
         """ Programs GEN Power state
