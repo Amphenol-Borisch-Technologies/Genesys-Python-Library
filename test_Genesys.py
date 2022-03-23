@@ -150,6 +150,9 @@ def test_repeat_last_command(genesys: Genesys) -> None:
     idn = genesys.get_identity()
     rlc = genesys.repeat_last_command()
     assert idn == rlc
+    cls = genesys._write_command_read_response('CLS\r')
+    rlc = genesys.repeat_last_command()
+    assert cls == rlc
     return None
 
 def test_get_identity(genesys: Genesys) -> None:
@@ -315,11 +318,16 @@ def test_set_additional_foldback_delay(genesys: Genesys) -> None:
     assert genesys.get_foldback_delay() == 250
     return None
 
-# def test_get_foldback_delay() -> None:
-    # See test_set_additional_foldback_delay(genesys: Genesys) above.
+def test_get_foldback_delay(genesys: Genesys) -> None:
+    fd = genesys.get_foldback_delay()
+    assert type(fd) == int
+    assert fd == 250
+    return None
 
-# def test_reset_foldback_delay(genesys: Genesys) -> None:
-    # See test_set_additional_foldback_delay(genesys: Genesys) above.
+def test_reset_foldback_delay(genesys: Genesys) -> None:
+    assert genesys.reset_foldback_delay() is None
+    assert genesys.get_foldback_delay() == 250
+    return None
 
 def test_program_over_voltage_protection(genesys: Genesys) -> None:
     with pytest.raises(TypeError):
@@ -371,56 +379,44 @@ def test_set_autostart_state(genesys: Genesys) -> None:
 
 def test_save_settings(genesys: Genesys) -> None:
     genesys.set_power_state('OFF')
-    genesys.set_foldback_state('OFF')
     genesys.set_autostart_state('OFF')
-    genesys.set_remote_mode('LLO')
     genesys.program_over_voltage_protection(genesys.OVP['MAX'])
     genesys.program_under_voltage_limit(genesys.UVL['min'])
     genesys.program_voltage(genesys.VOL['MAX'] / 2)
     genesys.program_amperage(genesys.CUR['MAX'] / 2)
-    # Ignore Address, Baud rate, LFP/UFP & M/S settings; problematic and/or overkill.
+    # Ignore Address, Baud rate, Foldback, Remote Mode, LFP/UFP & M/S settings; problematic and/or overkill.
     assert genesys.get_power_state() == 'OFF'
-    assert genesys.get_foldback_state() == 'OFF'
     assert genesys.get_autostart_state() == 'OFF'
-    assert genesys.get_remote_mode() == 'LLO'
-    assert genesys.get_over_voltage_protection() == genesys.OVP['MAX']
-    assert genesys.get_under_voltage_limit() == genesys.UVL['min']
-    assert genesys.get_voltage_programmed() == genesys.VOL['MAX'] / 2
-    assert genesys.get_amperage_programmed() == genesys.CUR['MAX'] / 2
+    assert abs(genesys.get_over_voltage_protection() - genesys.OVP['MAX']) < 0.2 # Roundoff.
+    assert abs(genesys.get_under_voltage_limit() - genesys.UVL['min']) < 0.2
+    assert abs(genesys.get_voltage_programmed() - genesys.VOL['MAX'] / 2) < 0.2
+    assert abs(genesys.get_amperage_programmed() - genesys.CUR['MAX'] / 2) < 0.2
     genesys.save_settings()
-
+ 
     genesys.set_power_state('ON')
-    genesys.set_foldback_state('ON')
     genesys.set_autostart_state('ON')
-    genesys.set_remote_mode('REM')
     genesys.program_voltage(genesys.VOL['MAX'] / 4)
     genesys.program_amperage(genesys.CUR['MAX'] / 4)
     genesys.program_over_voltage_protection(genesys.OVP['MAX'] / 2)
     genesys.program_under_voltage_limit(genesys.UVL['min'] + 0.5) # Works for even GEN6-XY.
     assert genesys.get_power_state() == 'ON'
-    assert genesys.get_foldback_state() == 'ON'
     assert genesys.get_autostart_state() == 'ON'
-    assert genesys.get_remote_mode() == 'REM'
-    assert genesys.get_voltage_programmed() == genesys.VOL['MAX'] / 4
-    assert genesys.get_amperage_programmed() == genesys.CUR['MAX'] / 4
-    assert genesys.get_over_voltage_protection() == genesys.OVP['MAX'] / 2
-    assert genesys.get_under_voltage_limit() == genesys.UVL['MAX'] + 0.5
+    assert abs(genesys.get_voltage_programmed() - genesys.VOL['MAX'] / 4) < 0.2
+    assert abs(genesys.get_amperage_programmed() - genesys.CUR['MAX'] / 4) < 0.2
+    assert abs(genesys.get_over_voltage_protection() - genesys.OVP['MAX'] / 2) < 0.2
+    assert abs(genesys.get_under_voltage_limit() - genesys.UVL['min'] - 0.5) < 0.2
 
     genesys.recall_settings()
     assert genesys.get_power_state() == 'OFF'
-    assert genesys.get_foldback_state() == 'OFF'
     assert genesys.get_autostart_state() == 'OFF'
-    assert genesys.get_remote_mode() == 'LLO'
-    assert genesys.get_over_voltage_protection() == genesys.OVP['MAX']
-    assert genesys.get_under_voltage_limit() == genesys.UVL['min']
-    assert genesys.get_voltage_programmed() == genesys.VOL['MAX'] / 2
-    assert genesys.get_amperage_programmed() == genesys.CUR['MAX'] / 2
+    assert abs(genesys.get_over_voltage_protection() - genesys.OVP['MAX']) < 0.2 # Roundoff.
+    assert abs(genesys.get_under_voltage_limit() - genesys.UVL['min']) < 0.2
+    assert abs(genesys.get_voltage_programmed() - genesys.VOL['MAX'] / 2) < 0.2
+    assert abs(genesys.get_amperage_programmed() - genesys.CUR['MAX'] / 2) < 0.2
     return None
 
 # def test_recall_settings(genesys: Genesys) -> None:
     # See test_save_settings(genesys: Genesys) above.
-
-
 
 
 

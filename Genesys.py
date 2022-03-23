@@ -192,7 +192,7 @@ class Genesys(object):
                               instance variable self.last_command and directly call function self.command_interrogative() or
                               method self.command_imperative(), depending if self.last_command is Interrogative or Imperative.
         """
-        return self._write_command_read_response('\\')
+        return self._write_command_read_response('\\\r')
 
     def get_identity(self) -> str:
         """ Reads GEN Model info
@@ -758,14 +758,17 @@ class Genesys(object):
             # If the currently addressed & listening Genesys is also the Genesys object being commanded, then skip re-addressing it, avoiding delay.
             adr = 'ADR {}\r'.format(self.address)
             adr = adr.encode('utf-8')           # pySerial library requires UTF-8 byte encoding/decoding, not string.
-            self.serial_port.write(adr)
             time.sleep(0.150)
+            # 7.5.2 Addressing:
+            # 'The Address is sent separately from the command. It is recommended to add 100msec delay between query or sent command to next unit addressing.'
+            self.serial_port.write(adr)
             self.last_command = adr
+            time.sleep(0.150) # Guessed delay time.  May need to be changed.
             assert self._read_response() == 'OK'
         command = command.encode('utf-8')
         self.serial_port.write(command)
-        time.sleep(0.150)
         self.last_command = command
+        time.sleep(0.150) # Guessed delay time.  May need to be changed.
         return self._read_response()
 
     def _read_response(self) -> str:
