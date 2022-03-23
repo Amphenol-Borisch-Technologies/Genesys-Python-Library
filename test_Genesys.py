@@ -125,10 +125,10 @@ def test_set_remote_mode(genesys: Genesys) -> None:
     with pytest.raises(ValueError):
         genesys.set_remote_mode('Invalid Remote Mode, so should fail.')
     assert genesys.set_remote_mode('REM') is None
-    rm = genesys.get_remote_mode
+    rm = genesys.get_remote_mode()
     assert rm == 'REM'
     genesys.set_remote_mode('LLO')
-    rm = genesys.get_remote_mode
+    rm = genesys.get_remote_mode()
     assert rm == 'LLO'
     return None
 
@@ -182,13 +182,13 @@ def test_program_voltage(genesys: Genesys) -> None:
         genesys.program_voltage('Invalid Voltage, so should fail.')
     with pytest.raises(ValueError):
         genesys.program_voltage(genesys.VOL['MAX'] + 1)
-    genesys.set_power_state('ON')
+    genesys.set_power_state('OFF')
+    genesys.program_over_voltage_protection(genesys.VOL['MAX'])
+    genesys.program_under_voltage_limit(genesys.VOL['min'])
     v = genesys.VOL['MAX'] / 2              ;  print(v)
     assert genesys.program_voltage(v) is None
     vp = genesys.get_voltage_programmed()
     assert (v * 0.9 <= vp <= v * 1.1) # Allow for rounding.
-    vm = genesys.get_voltage_measured()
-    assert (v * 0.9 <= vm <= v * 1.1) # Allow for rounding.
     return None
 
 def test_get_voltage_programmed(genesys: Genesys) -> None:
