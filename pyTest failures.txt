@@ -25,18 +25,34 @@ E        +  where <class 'str'> = type('C01')
 test_Genesys.py:145: AssertionError
 
 
+./test_Genesys.py::test_get_voltages_currents[0] Failed: [undefined]ValueError: could not convert string to float: 'C01'
+genesys = <Genesys.Genesys object at 0x000001C2C899FB80>
 
-./test_Genesys.py::test_get_ms_parallel_operation[0] Failed: [undefined]AssertionError: assert <class 'str'> == int
- +  where <class 'str'> = type('C01')
-genesys = <Genesys.Genesys object at 0x0000021CAEBF36A0>
+    def test_get_voltages_currents(genesys: Genesys) -> None:
+>       vc = genesys.get_voltages_currents()     ; print(vc)
 
-    def test_get_ms_parallel_operation(genesys: Genesys) -> None:
-        mspo = genesys.get_ms_parallel_operation()
->       assert type(mspo) == int
-E       AssertionError: assert <class 'str'> == int
-E        +  where <class 'str'> = type('C01')
+test_Genesys.py:244: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-test_Genesys.py:145: AssertionError
+self = <Genesys.Genesys object at 0x000001C2C899FB80>
+
+    def get_voltages_currents(self) -> dict:
+        """ Reads GEN Voltage Measured, Voltage Programmed, Amperage Measured, Amperage Programmed, Over Voltage & Under Voltage
+            Inputs:       None
+            Outputs:      dict, {'Voltage Measured'     : float,
+                                 'Voltage Programmed'   : float,
+                                 'Amperage Measured'    : float,
+                                 'Amperage Programmed'  : float,
+                                 'Over Voltage'         : float,
+                                 'Under Voltage'        : float}
+            GEN command:  DVC?
+        """
+        va = self.command_interrogative('DVC?')
+        va = va.split(',')
+>       for i in range(0, len(va), 1): va[i] = float(va[i])
+E       ValueError: could not convert string to float: 'C01'
+
+Genesys.py:318: ValueError
 
 
 
