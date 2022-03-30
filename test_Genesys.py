@@ -626,3 +626,28 @@ def test__validate_binary_state() -> None:
     binary_state = Genesys._validate_binary_state('oN')
     assert binary_state == 'ON'
     return None
+
+# _fast_query
+# _group_write_command
+# _write_command_read_response
+# command_imperative
+# command_interrogative
+# get_power_on_time
+# get_register_fault_condition
+# get_register_fault_enable
+# get_register_fault_event
+# get_register_status_condition
+# get_register_status_enable
+# get_register_status_event
+# get_registers_fast
+# group_program_current
+# group_program_voltage
+# group_recall_settings
+# group_reset
+# group_save_settings
+# group_set_power_state
+# is_multi_drop_enabled
+# is_responsive
+# set_register_fault_enable
+# set_register_status_condition
+# validate_address
