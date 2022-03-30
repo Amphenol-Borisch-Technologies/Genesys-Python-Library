@@ -323,7 +323,7 @@ class Genesys(object):
                 'Over Voltage'          : va[4],
                 'Under Voltage'         : va[5]}
 
-    def get_status(self) -> str:
+    def get_status(self) -> dict:
         """ Reads GEN complete power supply status
             Inputs:       None
             Outputs:      dict, {'Voltage Measured'      : float,
