@@ -17,7 +17,7 @@ from Genesys import Genesys
 #    1     GEN40-38
 serial_port = serial.Serial(port='COM4', baudrate=19200, bytesize=serial.EIGHTBITS,
                             parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE,
-                            timeout=1, xonxoff=True, rtscts=False,
+                            timeout=0, xonxoff=True, rtscts=False,
                             write_timeout=0, dsrdtr=False, inter_byte_timeout=None)
 
 gens = {}

@@ -192,7 +192,7 @@ class Genesys(object):
                               instance variable self.last_command and directly call function self.command_interrogative() or
                               method self.command_imperative(), depending if self.last_command is Interrogative or Imperative.
         """
-        return self._write_command_read_response('\\')
+        return self._write_command_read_response('\\\r')
 
     def get_identity(self) -> str:
         """ Reads GEN Model info
@@ -313,7 +313,7 @@ class Genesys(object):
                                  'Under Voltage'        : float}
             GEN command:  DVC?
         """
-        va = self.command_interrogative('DCV?')
+        va = self.command_interrogative('DVC?')
         va = va.split(',')
         for i in range(0, len(va), 1): va[i] = float(va[i])
         return {'Voltage Measured'      : va[0],
@@ -323,7 +323,7 @@ class Genesys(object):
                 'Over Voltage'          : va[4],
                 'Under Voltage'         : va[5]}
 
-    def get_status(self) -> str:
+    def get_status(self) -> dict:
         """ Reads GEN complete power supply status
             Inputs:       None
             Outputs:      dict, {'Voltage Measured'      : float,
@@ -364,7 +364,7 @@ class Genesys(object):
             Outputs:      int, GEN low-pass filter frequency of A/D Converter for voltage & current measurement
             GEN command:  FILTER?
         """
-        return self.command_imperative('FILTER?')
+        return self.command_interrogative('FILTER?')
 
     def set_power_state(self, binary_state: str) -> None:
         """ Programs GEN Power state
@@ -406,13 +406,13 @@ class Genesys(object):
         """ Programs GEN Foldback delay, in addition to standard 250 milli-seconds
             Inputs:        int:  milli_seconds in range (0, 256, 1)
             Outputs:       None
-            GEN commands:  FDB {milli_seconds}
+            GEN commands:  FBD {milli_seconds}
         """
         if type(milli_seconds) != int:
             raise TypeError('Invalid Foldback Delay, must be an integer.')
         if not milli_seconds in range(0, 256, 1):
             raise ValueError('Invalid Foldback Delay, must be in range(0, 256, 1)')
-        self.command_imperative('FDB {}'.format(milli_seconds))
+        self.command_imperative('FBD {}'.format(milli_seconds))
         return None
 
     def get_foldback_delay(self) -> int:
@@ -666,11 +666,11 @@ class Genesys(object):
             GEN command:  FENA {}
             - Class Genesys supports Service Requests, but SRQ messages are be handled by the client application.
             - From 'TDK-Lambda Genesys Power Supplies User Manual, 83-507-013':
-              - Since Service Request messages may be sent from any supply at any time,
+                - Since Service Request messages may be sent from any supply at any time,
                 there is a chance they can collide with other messages from other supplies.
-              - Your controller software has to be sophisticated enough to read messages that
+                - Your controller software has to be sophisticated enough to read messages that
                 may come at any time, and to recover if messages are corrupted by collisions.
-              - If you need Service Request messaging, please contact TDK-Lambda for assistance.
+                - If you need Service Request messaging, please contact TDK-Lambda for assistance.
                 We can provide several special communication commands and settings that will help with this.
         """
         if type(fault_enable) != int:
@@ -704,11 +704,11 @@ class Genesys(object):
             GEN command:  SENA {}
             - Class Genesys supports Service Requests, but SRQ messages are be handled by the client application.
             - From 'TDK-Lambda Genesys Power Supplies User Manual, 83-507-013':
-              - Since Service Request messages may be sent from any supply at any time,
+                - Since Service Request messages may be sent from any supply at any time,
                 there is a chance they can collide with other messages from other supplies.
-              - Your controller software has to be sophisticated enough to read messages that
+                - Your controller software has to be sophisticated enough to read messages that
                 may come at any time, and to recover if messages are corrupted by collisions.
-              - If you need Service Request messaging, please contact TDK-Lambda for assistance.
+                - If you need Service Request messaging, please contact TDK-Lambda for assistance.
                 We can provide several special communication commands and settings that will help with this.
         """
         if type(status_enable) != int:
@@ -758,14 +758,17 @@ class Genesys(object):
             # If the currently addressed & listening Genesys is also the Genesys object being commanded, then skip re-addressing it, avoiding delay.
             adr = 'ADR {}\r'.format(self.address)
             adr = adr.encode('utf-8')           # pySerial library requires UTF-8 byte encoding/decoding, not string.
+            time.sleep(0.100)
+            # 7.5.2 Addressing:
+            # 'The Address is sent separately from the command. It is recommended to add 100msec delay between query or sent command to next unit addressing.'
             self.serial_port.write(adr)
-            time.sleep(0.150)
             self.last_command = adr
+            time.sleep(0.150) # Guessed delay time.  May need to be changed.
             assert self._read_response() == 'OK'
         command = command.encode('utf-8')
         self.serial_port.write(command)
-        time.sleep(0.150)
         self.last_command = command
+        time.sleep(0.150) # Guessed delay time.  May need to be changed.
         return self._read_response()
 
     def _read_response(self) -> str:
@@ -829,11 +832,11 @@ class Genesys(object):
     def group_program_voltage(serial_port: serial, volts: float) -> None:
         """ Group programs GEN voltages
             Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies       
-                          - volts: float, desired voltage
+                            - volts: float, desired voltage
             Outputs:      None
             GEN command:  GPV {volts}
             Assumptions:  - Desired voltage within capabilities of all Genesys supplies connected to serial_port.
-                          - Desired voltage within UVL/OVP settings of all Genesys supplies connected to serial_port.
+                            - Desired voltage within UVL/OVP settings of all Genesys supplies connected to serial_port.
         """
         if type(volts) not in (int, float):
             raise TypeError('Invalid Voltage, must be a real number.')
@@ -845,7 +848,7 @@ class Genesys(object):
     def group_program_current(serial_port: serial, amperes: float) -> None:
         """ Group programs GEN amperages
             Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies 
-                          - amperes: float, desired amperage
+                            - amperes: float, desired amperage
             Outputs:      None
             GEN command:  GPC {amperes}
             Assumptions:  - Desired amperage within capabilities of all Genesys supplies connected to serial_port.
@@ -860,7 +863,7 @@ class Genesys(object):
     def group_set_power_state(serial_port: serial, binary_state: str) -> None:
         """ Group programs GEN power states
             Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies 
-                          - binary_state: str in ('ON, 'OFF')
+                            - binary_state: str in ('ON, 'OFF')
             Outputs:      None
             GEN command:  GOUT {binary_state}
         """
@@ -875,15 +878,15 @@ class Genesys(object):
             Outputs:      None
             GEN command:  GSAV
             Current settings saved to GEN 'Last Settings' memory:
-                 1) OUT ON or OFF
-                 2) Output Voltage setting (PV setting)
-                 3) Output Current setting (PC setting)
-                 4) OVP level
-                 5) UVL level
-                 6) FOLD setting
-                 7) Start-up mode (Safe-start or Auto-restart)
-                 8) Remote/Local: If the last setting was Local Lockout, (latched mode), the supply will return to Remote mode (non-latched).
-                 9) Locked/Unlocked Front Panel (LFP/UFP)
+                    1) OUT ON or OFF
+                    2) Output Voltage setting (PV setting)
+                    3) Output Current setting (PC setting)
+                    4) OVP level
+                    5) UVL level
+                    6) FOLD setting
+                    7) Start-up mode (Safe-start or Auto-restart)
+                    8) Remote/Local: If the last setting was Local Lockout, (latched mode), the supply will return to Remote mode (non-latched).
+                    9) Locked/Unlocked Front Panel (LFP/UFP)
                 10) Master/Slave setting
         """
         Genesys._group_write_command(serial_port, 'GSAV')
@@ -896,15 +899,15 @@ class Genesys(object):
             Outputs:      None
             GEN command:  GRCL
             Settings recalled as current settings from GEN 'Last Settings' memory:
-                 1) OUT ON or OFF
-                 2) Output Voltage setting (PV setting)
-                 3) Output Current setting (PC setting)
-                 4) OVP level
-                 5) UVL level
-                 6) FOLD setting
-                 7) Start-up mode (Safe-start or Auto-restart)
-                 8) Remote/Local: If the last setting was Local Lockout, (latched mode), the supply will return to Remote mode (non-latched).
-                 9) Locked/Unlocked Front Panel (LFP/UFP)
+                    1) OUT ON or OFF
+                    2) Output Voltage setting (PV setting)
+                    3) Output Current setting (PC setting)
+                    4) OVP level
+                    5) UVL level
+                    6) FOLD setting
+                    7) Start-up mode (Safe-start or Auto-restart)
+                    8) Remote/Local: If the last setting was Local Lockout, (latched mode), the supply will return to Remote mode (non-latched).
+                    9) Locked/Unlocked Front Panel (LFP/UFP)
                 10) Master/Slave setting
         """
         Genesys._group_write_command(serial_port, 'GRCL')

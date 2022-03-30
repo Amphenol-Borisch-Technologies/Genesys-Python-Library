@@ -15,9 +15,9 @@ Chapter 7 is especially relevant.
   - RS-232 PC to Genesys cable: GEN/232-9
     - Need 1 GEN/232-9 to connect your PC to the first Genesys in your serial chain.
   - RS-485 Genesys to Genesys cables: GEN/RJ45
-    - Need 1 each for remaining Genesyses in your serial chain.  For 6 Genesyses, will need 5 GEN/RJ45s.
+    - Need 1 each for remaining Genesys supplies in your serial chain.  For 6 Genesys supplies, will need 5 GEN/RJ45s.
 - Configure your Genesys supplies for serial communication.
-  - Note that the Genesys connected to your PC communicates via RS-232, the Genesyses daisy-chained to one another via RS-485.
+  - Note that the Genesys connected to your PC communicates via RS-232 or RS-485; the Genesys daisy-chained to one another only via RS-485.
 - Install Python:  https://www.python.org/
 - Install pySerial: https://pypi.org/project/pyserial/
 - Install Genesys.py library from this repository.
