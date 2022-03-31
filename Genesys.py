@@ -575,7 +575,7 @@ class Genesys():
         query = query.encode('utf-8')
         self.serial_port.write(query)
         self.last_command = query
-        response = self.serial_port.readline()
+        response = self.serial_port.read_until(b'\r', expected_bytes)
         self.serial_port.timeout = to
         response = response.decode('utf-8')     # pySerial library requires UTF-8 byte encoding/decoding, not string.
         response = response.replace('\r','')    # Per Genesys Manual, paragraph 7.5.3, Genesi append '\r' to their responses; remove them.
