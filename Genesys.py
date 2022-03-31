@@ -14,7 +14,7 @@ import re
 import time
 import serial # https://pypi.org/project/pyserial/ & https://pyserial.readthedocs.io/en/latest/pyserial.html
 
-class Genesys(object):
+class Genesys():
     """ Class to programmatically control TDK-Lambda Genesys Power Supplies via their serial ports.
         - Reference  Genesys Manual 'TDK-Lambda Genesys Power Supplies User Manual, 83-507-013', especially Chapter 7, 'RS232 & RS485 Remote Control'
            - https://product.tdk.com/system/files/dam/doc/product/power/switching-power/prg-power/instruction_manual/gen1u-750-1500w_user_manual.pdf
@@ -571,8 +571,11 @@ class Genesys(object):
         to = self.serial_port.timeout
         self.serial_port.timeout = 0.1
         # If no response in 10 milli-seconds, Genesys supply is not responsive.  Add another 90 ms for RS-232/RS-485 transmission time; may need to tweak.
+        query = query + '\r'
+        query = query.encode('utf-8')
         self.serial_port.write(query)
-        response = self.serial_port.read_until(b'\r', expected_bytes)
+        self.last_command = query
+        response = self.serial_port.readline()
         self.serial_port.timeout = to
         response = response.decode('utf-8')     # pySerial library requires UTF-8 byte encoding/decoding, not string.
         response = response.replace('\r','')    # Per Genesys Manual, paragraph 7.5.3, Genesi append '\r' to their responses; remove them.
