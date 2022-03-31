@@ -74,7 +74,6 @@ class Genesys(object):
         if serial_port.baudrate not in Genesys.BAUD_RATES:
             raise ValueError('Invalid Baud Rate, must be in list ' + str(Genesys.BAUD_RATES) + '.')
         self.serial_port = serial_port
-        self.timeout = serial_port.timeout
         self.address = address                           # Integer in range [0..30]
         self.last_command = ''                           # self.last_command updated by ._write_command_read_response.
         self.last_response = ''                          # self.last_response updated by ._write_command_read_response.
@@ -112,7 +111,7 @@ class Genesys(object):
             Outputs:      None
             GEN command:  CLS
         """
-        self.command_imperative('CLS')
+        self._command_imperative('CLS')
         return None
 
     def reset(self) -> None:
@@ -131,7 +130,7 @@ class Genesys(object):
             8) FOLD: OFF
             9) The FLT & STAT Condition registers are updated, other registers are not changed
         """
-        self.command_imperative('RST')
+        self._command_imperative('RST')
         return None
 
     def set_remote_mode(self, mode: str) -> None:
@@ -145,7 +144,7 @@ class Genesys(object):
         mode = mode.upper()
         if mode not in ('LOC', 'REM', 'LLO'):
             raise ValueError('Invalid Remote Mode, must be in (''LOC'', ''REM'', ''LLO'').')
-        self.command_imperative('RMT {}'.format(mode))
+        self._command_imperative('RMT {}'.format(mode))
         return None
 
     def get_remote_mode(self) -> str:
@@ -154,7 +153,7 @@ class Genesys(object):
             Outputs:      mode: str in ('LOC', 'REM', 'LLO')
             GEN command:  RMT?
         """
-        return self.command_interrogative('RMT?')
+        return self._command_interrogative('RMT?')
 
     def multi_drop_installed(self) -> bool:
         """ Reads GEN Multi-drop option installed
@@ -162,7 +161,7 @@ class Genesys(object):
             Outputs:      bool, False if Multi-drop not installed, True if installed
             GEN command:  MDAV?
         """
-        return self.command_interrogative('MDAV?') == 1
+        return self._command_interrogative('MDAV?') == 1
 
     def get_ms_parallel_operation(self) -> str:
         """ Reads GEN ms parallel operation
@@ -170,7 +169,7 @@ class Genesys(object):
             Outputs:      int: in (0, 1, 2, 3, 4)
             GEN command:  MS?
         """
-        return self.command_interrogative('MS?')
+        return self._command_interrogative('MS?')
 
     def repeat_last_command(self) -> str:
         """ Reads GEN ms parallel operation
@@ -189,8 +188,8 @@ class Genesys(object):
                               - Guessing '\\' is intended for Service Request error handling routines, where the last command
                                 didn't complete correctly due to colliding with an SRQ message, so is reissued.
                             - Possible alternative implementation would be for client applications to directly access the Genesys class
-                              instance variable self.last_command and directly call function self.command_interrogative() or
-                              method self.command_imperative(), depending if self.last_command is Interrogative or Imperative.
+                              instance variable self.last_command and directly call function self._command_interrogative() or
+                              method self._command_imperative(), depending if self.last_command is Interrogative or Imperative.
         """
         return self._write_command_read_response('\\\r')
 
@@ -200,7 +199,7 @@ class Genesys(object):
             Outputs:      str, GEN Identification
             GEN command:  IDN?
         """
-        return self.command_interrogative('IDN?')
+        return self._command_interrogative('IDN?')
 
     def get_revision(self) -> str:
         """ Reads GEN Firmware revision
@@ -208,7 +207,7 @@ class Genesys(object):
             Outputs:      str, GEN Firmware revision
             GEN command:  REV?
         """
-        return self.command_interrogative('REV?')
+        return self._command_interrogative('REV?')
 
     def get_serial_number(self) -> str:
         """ Reads GEN serial Number
@@ -216,7 +215,7 @@ class Genesys(object):
             Outputs:      str, GEN serial number
             GEN command:  SN?
         """
-        return self.command_interrogative('SN?')
+        return self._command_interrogative('SN?')
 
     def get_date(self) -> str:
         """ Reads GEN date of last test
@@ -224,7 +223,7 @@ class Genesys(object):
             Outputs:      str, date of last test
             GEN command:  DATE?
         """
-        return self.command_interrogative('DATE?')
+        return self._command_interrogative('DATE?')
 
     def program_voltage(self, volts: float) -> None:
         """ Programs GEN voltage
@@ -245,7 +244,7 @@ class Genesys(object):
         if not (self.get_under_voltage_limit() / 0.95 <= volts <= self.get_over_voltage_protection() / 1.05):
             raise ValueError('Invalid Voltage, must *presently* be in range [{}..{}].'.format(self.get_under_voltage_limit() / 0.95, self.get_over_voltage_protection() / 1.05))
         volts = Genesys.FORMAT.format(volts)
-        self.command_imperative('PV {}'.format(volts))
+        self._command_imperative('PV {}'.format(volts))
         return None
 
     def get_voltage_programmed(self) -> float:
@@ -254,7 +253,7 @@ class Genesys(object):
             Outputs:      float, programmed voltage
             GEN command:  PV?
         """
-        return float(self.command_interrogative('PV?'))
+        return float(self._command_interrogative('PV?'))
 
     def get_voltage_measured(self) -> float:
         """ Reads GEN voltage, actual
@@ -262,7 +261,7 @@ class Genesys(object):
             Outputs:      float, actual voltage
             GEN command:  MV?
         """
-        return float(self.command_interrogative('MV?'))
+        return float(self._command_interrogative('MV?'))
 
     def program_amperage(self, amperes: float) -> None:
         """ Programs GEN amperage
@@ -275,7 +274,7 @@ class Genesys(object):
         if not (self.CUR['min'] <= amperes <= self.CUR['MAX']):
             raise ValueError('Invalid Amperage, must be in range [{}..{}].'.format(self.CUR['min'], self.CUR['MAX']))
         amperes = Genesys.FORMAT.format(amperes)
-        self.command_imperative('PC {}'.format(amperes))
+        self._command_imperative('PC {}'.format(amperes))
         return None
 
     def get_amperage_programmed(self) -> float:
@@ -284,7 +283,7 @@ class Genesys(object):
             Outputs:      float, programmed amperage
             GEN command:  PC?
         """
-        return float(self.command_interrogative('PC?'))
+        return float(self._command_interrogative('PC?'))
 
     def get_amperage_measured(self) -> float:
         """ Reads GEN amperage, measured
@@ -292,7 +291,7 @@ class Genesys(object):
             Outputs:      float, measured amperage
             GEN command:  MC?
         """
-        return float(self.command_interrogative('MC?'))
+        return float(self._command_interrogative('MC?'))
 
     def get_operation_mode(self) -> str:
         """ Reads GEN operation mode, Constant Current, Constant Voltage, or Off state
@@ -300,7 +299,7 @@ class Genesys(object):
             Outputs:      str, in ('CC', 'CV', 'OFF')
             GEN command:  MODE?
         """
-        return self.command_interrogative('MODE?')
+        return self._command_interrogative('MODE?')
 
     def get_voltages_currents(self) -> dict:
         """ Reads GEN Voltage Measured, Voltage Programmed, Amperage Measured, Amperage Programmed, Over Voltage & Under Voltage
@@ -313,7 +312,7 @@ class Genesys(object):
                                  'Under Voltage'        : float}
             GEN command:  DVC?
         """
-        va = self.command_interrogative('DVC?')
+        va = self._command_interrogative('DVC?')
         va = va.split(',')
         for i in range(0, len(va), 1): va[i] = float(va[i])
         return {'Voltage Measured'      : va[0],
@@ -334,7 +333,7 @@ class Genesys(object):
                                  'Fault Register'        : int (hex format)}
             GEN command:  STT?
         """
-        st = self.command_interrogative('STT?')
+        st = self._command_interrogative('STT?')
         st = st.lower()
         st = re.sub('[a-z() ]*', '', st)     # Remove all alpha characters, '(', ')' & ' '.
         st = st.split(',')
@@ -355,7 +354,7 @@ class Genesys(object):
             raise TypeError('Invalid Frequency, must be an integer.')
         if not hertz in (18, 23, 46):
             raise ValueError('Invalid Frequency, must be in (18, 23, 46)')
-        self.command_imperative('FILTER {}'.format(hertz))
+        self._command_imperative('FILTER {}'.format(hertz))
         return None
 
     def get_filter_frequency(self) -> int:
@@ -364,7 +363,7 @@ class Genesys(object):
             Outputs:      int, GEN low-pass filter frequency of A/D Converter for voltage & current measurement
             GEN command:  FILTER?
         """
-        return self.command_interrogative('FILTER?')
+        return self._command_interrogative('FILTER?')
 
     def set_power_state(self, binary_state: str) -> None:
         """ Programs GEN Power state
@@ -373,7 +372,7 @@ class Genesys(object):
             GEN commands:  OUT {binary_state}
         """
         binary_state = Genesys._validate_binary_state(binary_state)
-        self.command_imperative('OUT {}'.format(binary_state))
+        self._command_imperative('OUT {}'.format(binary_state))
         return None
 
     def get_power_state(self) -> str:
@@ -382,7 +381,7 @@ class Genesys(object):
             Outputs:      binary_state: str in ('ON, 'OFF')
             GEN command:  OUT?
         """
-        return self.command_interrogative('OUT?')
+        return self._command_interrogative('OUT?')
 
     def set_foldback_state(self, binary_state: str) -> None:
         """ Programs GEN Foldback state
@@ -391,7 +390,7 @@ class Genesys(object):
             GEN commands:  FLD {binary_state}
         """
         binary_state = Genesys._validate_binary_state(binary_state)
-        self.command_imperative('FLD {}'.format(binary_state))
+        self._command_imperative('FLD {}'.format(binary_state))
         return None
 
     def get_foldback_state(self) -> str:
@@ -400,7 +399,7 @@ class Genesys(object):
             Outputs:      binary_state: str in ('ON, 'OFF')
             GEN command:  FLD?
         """
-        return self.command_interrogative('FLD?')
+        return self._command_interrogative('FLD?')
 
     def set_additional_foldback_delay(self, milli_seconds: int) -> None:
         """ Programs GEN Foldback delay, in addition to standard 250 milli-seconds
@@ -412,7 +411,7 @@ class Genesys(object):
             raise TypeError('Invalid Foldback Delay, must be an integer.')
         if not milli_seconds in range(0, 256, 1):
             raise ValueError('Invalid Foldback Delay, must be in range(0, 256, 1)')
-        self.command_imperative('FBD {}'.format(milli_seconds))
+        self._command_imperative('FBD {}'.format(milli_seconds))
         return None
 
     def get_foldback_delay(self) -> int:
@@ -421,7 +420,7 @@ class Genesys(object):
             Outputs:      int, in range(250, 506, 1)
             GEN command:  FBD?
         """
-        return self.command_interrogative('FBD?')
+        return self._command_interrogative('FBD?')
 
     def reset_foldback_delay(self) -> None:
         """ Resets GEN Foldback delay to 0 + standard inalterable 250 milli-seconds
@@ -429,7 +428,7 @@ class Genesys(object):
             Outputs:      int, in range(250, 506, 1)
             GEN command:  FBDRST
         """
-        self.command_imperative('FBDRST')
+        self._command_imperative('FBDRST')
         return None
 
     def program_over_voltage_protection(self, volts: float) -> None:
@@ -452,7 +451,7 @@ class Genesys(object):
             raise ValueError('Invalid Over-Voltage, must *presently* be in range [{}..{}].'.format(self.get_voltage_programmed() * 1.05, self.OVP['MAX']))
 
         volts = Genesys.FORMAT.format(volts)
-        self.command_imperative('OVP {}'.format(volts))
+        self._command_imperative('OVP {}'.format(volts))
         return None
 
     def get_over_voltage_protection(self) -> float:
@@ -461,7 +460,7 @@ class Genesys(object):
             Outputs:      float, programmed over-voltage
             GEN command:  OVP?
         """
-        return float(self.command_interrogative('OVP?'))
+        return float(self._command_interrogative('OVP?'))
 
     def program_over_voltage_protection_max(self) -> None:
         """ Programs GEN over-voltage limit
@@ -469,7 +468,7 @@ class Genesys(object):
             Outputs:      None
             GEN command:  OVM
         """
-        self.command_imperative('OVM')
+        self._command_imperative('OVM')
         return None
 
     def program_under_voltage_limit(self, volts: float)  -> None:
@@ -491,7 +490,7 @@ class Genesys(object):
         if not (self.UVL['min'] <= volts <= self.get_voltage_programmed() * 0.95):
             raise ValueError('Invalid Under-Voltage, must *presently* be in range [{}..{}].'.format(self.UVL['min'], self.get_voltage_programmed() * 0.95))
         volts = Genesys.FORMAT.format(volts)
-        self.command_imperative('UVL {}'.format(volts))
+        self._command_imperative('UVL {}'.format(volts))
         return None
 
     def get_under_voltage_limit(self) -> float:
@@ -500,7 +499,7 @@ class Genesys(object):
             Outputs:      float, programmed under-voltage
             GEN command:  UVL?
         """
-        return float(self.command_interrogative('UVL?'))
+        return float(self._command_interrogative('UVL?'))
 
     def set_autostart_state(self, binary_state: str) -> None:
         """ Programs GEN Autostart state
@@ -509,7 +508,7 @@ class Genesys(object):
             GEN commands:  AST {binary_state}
         """
         binary_state = Genesys._validate_binary_state(binary_state)
-        self.command_imperative('AST {}'.format(binary_state))
+        self._command_imperative('AST {}'.format(binary_state))
         return None
 
     def get_autostart_state(self) -> str:
@@ -518,7 +517,7 @@ class Genesys(object):
             Outputs:      binary_state: str in ('ON, 'OFF')
             GEN command:  AST?
         """
-        return self.command_interrogative('AST?')
+        return self._command_interrogative('AST?')
 
     def save_settings(self) -> None:
         """ Saves GEN 'Last Settings' with current settings
@@ -539,7 +538,7 @@ class Genesys(object):
                 11) Locked/Unlocked Front Panel (LFP/UFP)
                 12) Master/Slave setting
         """
-        self.command_imperative('SAV')
+        self._command_imperative('SAV')
         return None
 
     def recall_settings(self) -> None:
@@ -561,27 +560,26 @@ class Genesys(object):
                 11) Locked/Unlocked Front Panel (LFP/UFP)
                 12) Master/Slave setting
         """
-        self.command_imperative('RCL')
+        self._command_imperative('RCL')
         return None
 
-    @staticmethod
-    def _fast_query(serial_port: serial, address: int, query: bytes, expected_bytes: int) -> bytes:
+    def _fast_query(self, query: bytes, expected_bytes: int)  -> bytes:
         """ Internal method to write GEN fast queries & read their responses through pySerial serial object
             Not intended for external use.
         """
         # Genesys User Manual paragraph 7.9, 'Fast Queries'.
-        Genesys.validate_address(address)
-        to = serial_port.timeout
-        serial_port.timeout = 0
-        serial_port.write(query)
-        time.sleep(0.030)
-        # If no response in 10 milli-seconds, Genesys supply is not responsive.  Add another 20 ms for RS-232/RS-485 transmission time; may need to tweak.
-        response = serial_port.read_until('\r', expected_bytes)
-        serial_port.timeout = to
-        return response
+        to = self.serial_port.timeout
+        self.serial_port.timeout = 0.1
+        # If no response in 10 milli-seconds, Genesys supply is not responsive.  Add another 90 ms for RS-232/RS-485 transmission time; may need to tweak.
+        self.serial_port.write(query)
+        response = self.serial_port.read_until(b'\r', expected_bytes)
+        self.serial_port.timeout = to
+        response = response.decode('utf-8')     # pySerial library requires UTF-8 byte encoding/decoding, not string.
+        response = response.replace('\r','')    # Per Genesys Manual, paragraph 7.5.3, Genesi append '\r' to their responses; remove them.
+        self.last_response = response
+        return self.last_response
 
-    @staticmethod
-    def is_responsive(serial_port: serial, address: int) -> bool:
+    def is_responsive(self) -> bool:
         """ Fast queries GEN for responsiveness; semi-similar to a network ping of an IP address.
             Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies       
                           - address: int, address of TDK-Lambda GEN Power Supply
@@ -591,10 +589,9 @@ class Genesys(object):
             GEN command:  bytes([0xAA, address])
         """
         # Genesys User Manual paragraph 7.9.1, 'Fast Test for Connection'.
-        return Genesys._fast_query(serial_port, address, bytes([0xAA, address]), 5) is None
+        return self._fast_query(bytes([0xAA, self.address]), 5) is None
 
-    @staticmethod
-    def is_multi_drop_enabled(serial_port: serial, address: int) -> bool:
+    def is_multi_drop_enabled(self) -> bool:
         """ Fast queries GEN if Multi-Drop enabled
             Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies       
                           - address: int, address of TDK-Lambda GEN Power Supply
@@ -604,12 +601,11 @@ class Genesys(object):
             GEN command:  bytes([0xAA, address])
         """
         # Genesys User Manual paragraph 7.9.1, 'Fast Test for Connection'.
-        response = Genesys._fast_query(serial_port, address, bytes([0xAA, address]), 5)
+        response = self._fast_query(bytes([0xAA, self.address]), 5)
         if response is None: return False
         return response[0] == 0x31
 
-    @staticmethod
-    def get_registers_fast(serial_port: serial, address: int) -> bytes:
+    def get_registers_fast(self) -> bytes:
         """ Fast queries GEN for STAT, SENA, SEVE, FLT, FENA & FEVE registers
             Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies       
                           - address: int, address of TDK-Lambda GEN Power Supply
@@ -619,11 +615,10 @@ class Genesys(object):
             GEN command:  bytes([0x80 | address, 0x80 | address])
         """
         # Genesys User Manual paragraph 7.9.2, 'Fast Read Registers'.
-        byte = 0x80 | address
-        return Genesys._fast_query(serial_port, address, bytes([byte, byte]), 16)
+        byte = 0x80 | self.address
+        return self._fast_query(bytes([byte, byte]), 16)
 
-    @staticmethod
-    def get_power_on_time(serial_port: serial, address: int) -> bytes:
+    def get_power_on_time(self) -> bytes:
         """ Fast queries GEN for lifelong active operational time
             Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies       
                           - address: int, address of TDK-Lambda GEN Power Supply
@@ -633,7 +628,7 @@ class Genesys(object):
             GEN command:  bytes([0xA6, address])
         """
         # Genesys User Manual paragraph 7.9.3, 'Read Power-On Time'.
-        return Genesys._fast_query(serial_port, address, bytes([0xA6, address]), 12)
+        return self._fast_query(bytes([0xA6, self.address]), 12)
 
     def get_register_status_event(self) -> int:
         """ Reads GEN Status Event register
@@ -641,7 +636,7 @@ class Genesys(object):
             Outputs:      int, Status Event register contents in 2-digit hex
             GEN command:  SEVE?
         """
-        return int(self.command_interrogative('SEVE?'))
+        return int(self._command_interrogative('SEVE?'))
 
     def get_register_fault_condition(self) -> int:
         """ Reads GEN Fault Condition register
@@ -649,7 +644,7 @@ class Genesys(object):
             Outputs:      int, Fault Condition register contents in 2-digit hex
             GEN command:  FLT?
         """
-        return int(self.command_interrogative('FLT?'))
+        return int(self._command_interrogative('FLT?'))
 
     def get_register_fault_enable(self) -> int:
         """ Reads GEN Fault Enable register
@@ -657,7 +652,7 @@ class Genesys(object):
             Outputs:      int, Fault Enable register contents in 2-digit hex
             GEN command:  FENA?
         """
-        return int(self.command_interrogative('FENA?'))
+        return int(self._command_interrogative('FENA?'))
 
     def set_register_fault_enable(self, fault_enable: int) -> None:
         """ Programs GEN Fault Enable register
@@ -678,7 +673,7 @@ class Genesys(object):
         if not (0 <= fault_enable <= 255):
             raise ValueError('Invalid Fault Enable, must be in range (0..255).')
         fault_enable = format(fault_enable,'X')
-        self.command_imperative('FENA {}'.format(fault_enable))
+        self._command_imperative('FENA {}'.format(fault_enable))
         return None
 
     def get_register_fault_event(self) -> int:
@@ -687,7 +682,7 @@ class Genesys(object):
             Outputs:      int, Fault Event register contents in 2-digit hex
             GEN command:  FEVE?
         """
-        return int(self.command_interrogative('FEVE?'))
+        return int(self._command_interrogative('FEVE?'))
 
     def get_register_status_condition(self) -> int:
         """ Reads GEN Status Condition register
@@ -695,7 +690,7 @@ class Genesys(object):
             Outputs:      int, Status Condition register contents in 2-digit hex
             GEN command:  STAT?
         """
-        return int(self.command_interrogative('STAT?'))
+        return int(self._command_interrogative('STAT?'))
 
     def set_register_status_condition(self, status_enable: int) -> None:
         """ Programs GEN Status Condition register
@@ -716,7 +711,7 @@ class Genesys(object):
         if not (0 <= status_enable <= 255):
             raise ValueError('Invalid Status Enable, must be in range (0..255).')
         status_enable = format(status_enable,'X')
-        self.command_imperative('SENA {}'.format(status_enable))
+        self._command_imperative('SENA {}'.format(status_enable))
         return None
 
     def get_register_status_enable(self) -> int:
@@ -725,9 +720,9 @@ class Genesys(object):
             Outputs:      int, Status Enable register contents in 2-digit hex
             GEN command:  SENA?
         """
-        return int(self.command_interrogative('SENA?'))
+        return int(self._command_interrogative('SENA?'))
 
-    def command_imperative(self, command: str) -> None:
+    def _command_imperative(self, command: str) -> None:
         """ Reads GEN Status Event register
             Inputs:       command: str, imperative command; a command to do something
             Outputs:      None
@@ -736,7 +731,7 @@ class Genesys(object):
         assert self._write_command_read_response(command + '\r') == 'OK'
         return None
 
-    def command_interrogative(self, command: str) -> str:
+    def _command_interrogative(self, command: str) -> str:
         """ Reads GEN Status Event register
             Inputs:       command: str, interrogative command; a question or query
             Outputs:      str, response from interrogative command
