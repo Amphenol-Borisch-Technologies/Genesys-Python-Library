@@ -102,6 +102,7 @@ disable=bad-inline-option,
         suppressed-message,
         unidiomatic-typecheck,
         unused-variable,
+        useless-return,
         useless-suppression,
         use-symbolic-message-instead
 

@@ -581,7 +581,7 @@ class Genesys(object):
 
     def is_responsive(self) -> bool:
         """ Fast queries GEN for responsiveness; semi-similar to a network ping of an IP address.
-            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies       
+            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies
                           - address: int, address of TDK-Lambda GEN Power Supply
              Outputs:      bool:
                            - True if Genesys does respond.
@@ -593,7 +593,7 @@ class Genesys(object):
 
     def is_multi_drop_enabled(self) -> bool:
         """ Fast queries GEN if Multi-Drop enabled
-            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies       
+            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies
                           - address: int, address of TDK-Lambda GEN Power Supply
             Outputs:      bool:
                           - True if Genesys responds *and* Multi-Drop is enabled.
@@ -607,7 +607,7 @@ class Genesys(object):
 
     def get_registers_fast(self) -> bytes:
         """ Fast queries GEN for STAT, SENA, SEVE, FLT, FENA & FEVE registers
-            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies       
+            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies
                           - address: int, address of TDK-Lambda GEN Power Supply
             Outputs:      bytes(16):
                           - bytes[0:11] contain respectively the STAT, SENA, SEVE, FLT, FENA & FEVE registers.
@@ -620,7 +620,7 @@ class Genesys(object):
 
     def get_power_on_time(self) -> bytes:
         """ Fast queries GEN for lifelong active operational time
-            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies       
+            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies
                           - address: int, address of TDK-Lambda GEN Power Supply
             Outputs:      bytes(12):
                           - bytes[0:7] are the minutes as a 32 Bit integer as 8 ASCII Hex bytes.
@@ -806,7 +806,7 @@ class Genesys(object):
     @staticmethod
     def group_reset(serial_port: serial) -> None:
         """ Group reset command; brings GEN group supplies to a safe and known state
-            Inputs:       serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies       
+            Inputs:       serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies
             Outputs:      None
             GEN command:  GRST
             Reset states:
@@ -826,7 +826,7 @@ class Genesys(object):
     @staticmethod
     def group_program_voltage(serial_port: serial, volts: float) -> None:
         """ Group programs GEN voltages
-            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies       
+            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies
                             - volts: float, desired voltage
             Outputs:      None
             GEN command:  GPV {volts}
@@ -842,7 +842,7 @@ class Genesys(object):
     @staticmethod
     def group_program_current(serial_port: serial, amperes: float) -> None:
         """ Group programs GEN amperages
-            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies 
+            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies
                             - amperes: float, desired amperage
             Outputs:      None
             GEN command:  GPC {amperes}
@@ -857,7 +857,7 @@ class Genesys(object):
     @staticmethod
     def group_set_power_state(serial_port: serial, binary_state: str) -> None:
         """ Group programs GEN power states
-            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies 
+            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies
                             - binary_state: str in ('ON, 'OFF')
             Outputs:      None
             GEN command:  GOUT {binary_state}
@@ -869,7 +869,7 @@ class Genesys(object):
     @staticmethod
     def group_save_settings(serial_port: serial) -> None:
         """ Group saves GEN supplies 'Last Settings' into memory
-            Inputs:       serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies 
+            Inputs:       serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies
             Outputs:      None
             GEN command:  GSAV
             Current settings saved to GEN 'Last Settings' memory:
@@ -890,7 +890,7 @@ class Genesys(object):
     @staticmethod
     def group_recall_settings(serial_port: serial) -> None:
         """ Group recalls GEN supplies 'Last Settings' from memory
-            Inputs:       serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies 
+            Inputs:       serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies
             Outputs:      None
             GEN command:  GRCL
             Settings recalled as current settings from GEN 'Last Settings' memory:
