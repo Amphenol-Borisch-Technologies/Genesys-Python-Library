@@ -99,14 +99,6 @@ def test__str__(genesys: Genesys) -> None:
     assert _str_ == idn
     return None
 
-def test_clear_status(genesys: Genesys) -> None:
-    assert genesys.clear_status() is None
-    rfe = genesys.get_register_fault_event()
-    assert rfe == 0x00
-    rse = genesys.get_register_status_event()
-    assert rse == 0x00
-    return None
-
 def test_reset(genesys: Genesys) -> None:
     assert genesys.reset() is None
     assert genesys.get_voltage_programmed() == 0
@@ -117,8 +109,6 @@ def test_reset(genesys: Genesys) -> None:
     assert genesys.get_over_voltage_protection() == genesys.OVP['MAX']
     assert genesys.get_under_voltage_limit() == genesys.UVL['min']
     assert genesys.get_foldback_state() == 'OFF'
-    assert genesys.get_register_fault_condition() == 0x00
-    assert genesys.get_register_status_condition() == 0x04
     return None
 
 def test_set_remote_mode(genesys: Genesys) -> None:
