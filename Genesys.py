@@ -163,14 +163,6 @@ class Genesys():
         """
         return self._command_interrogative('MDAV?') == 1
 
-    def get_ms_parallel_operation(self) -> str:
-        """ Reads GEN ms parallel operation
-            Inputs:       None
-            Outputs:      int: in (0, 1, 2, 3, 4)
-            GEN command:  MS?
-        """
-        return self._command_interrogative('MS?')
-
     def repeat_last_command(self) -> str:
         """ Reads GEN ms parallel operation
             Inputs:       None
@@ -301,27 +293,6 @@ class Genesys():
         """
         return self._command_interrogative('MODE?')
 
-    def get_voltages_currents(self) -> dict:
-        """ Reads GEN Voltage Measured, Voltage Programmed, Amperage Measured, Amperage Programmed, Over Voltage & Under Voltage
-            Inputs:       None
-            Outputs:      dict, {'Voltage Measured'     : float,
-                                 'Voltage Programmed'   : float,
-                                 'Amperage Measured'    : float,
-                                 'Amperage Programmed'  : float,
-                                 'Over Voltage'         : float,
-                                 'Under Voltage'        : float}
-            GEN command:  DVC?
-        """
-        va = self._command_interrogative('DVC?')
-        va = va.split(',')
-        for i in range(0, len(va), 1): va[i] = float(va[i])
-        return {'Voltage Measured'      : va[0],
-                'Voltage Programmed'    : va[1],
-                'Amperage Measured'     : va[2],
-                'Amperage Programmed'   : va[3],
-                'Over Voltage'          : va[4],
-                'Under Voltage'         : va[5]}
-
     def get_status(self) -> dict:
         """ Reads GEN complete power supply status
             Inputs:       None
@@ -343,19 +314,6 @@ class Genesys():
                 'Amperage Programmed'   :      float(st[3]),
                 'Status Register'       : format(int(st[4]),'X'),
                 'Fault Register'        : format(int(st[5]),'X')}
-
-    def set_filter_frequency(self, hertz: int) -> None:
-        """ Programs GEN low-pass filter frequency of A/D Converter for voltage & current measurement
-            Inputs:        hertz: int in (18, 23, 46)
-            Outputs:       None
-            GEN commands:  FILTER {hertz}
-        """
-        if type(hertz) != int:
-            raise TypeError('Invalid Frequency, must be an integer.')
-        if not hertz in (18, 23, 46):
-            raise ValueError('Invalid Frequency, must be in (18, 23, 46)')
-        self._command_imperative('FILTER {}'.format(hertz))
-        return None
 
     def get_filter_frequency(self) -> int:
         """ Reads GEN Status
@@ -400,36 +358,6 @@ class Genesys():
             GEN command:  FLD?
         """
         return self._command_interrogative('FLD?')
-
-    def set_additional_foldback_delay(self, milli_seconds: int) -> None:
-        """ Programs GEN Foldback delay, in addition to standard 250 milli-seconds
-            Inputs:        int:  milli_seconds in range (0, 256, 1)
-            Outputs:       None
-            GEN commands:  FBD {milli_seconds}
-        """
-        if type(milli_seconds) != int:
-            raise TypeError('Invalid Foldback Delay, must be an integer.')
-        if not milli_seconds in range(0, 256, 1):
-            raise ValueError('Invalid Foldback Delay, must be in range(0, 256, 1)')
-        self._command_imperative('FBD {}'.format(milli_seconds))
-        return None
-
-    def get_foldback_delay(self) -> int:
-        """ Reads total GEN Foldback delay, sum of programmed & standard 250 milli-seconds
-            Inputs:       None
-            Outputs:      int, in range(250, 506, 1)
-            GEN command:  FBD?
-        """
-        return self._command_interrogative('FBD?')
-
-    def reset_foldback_delay(self) -> None:
-        """ Resets GEN Foldback delay to 0 + standard inalterable 250 milli-seconds
-            Inputs:       None
-            Outputs:      int, in range(250, 506, 1)
-            GEN command:  FBDRST
-        """
-        self._command_imperative('FBDRST')
-        return None
 
     def program_over_voltage_protection(self, volts: float) -> None:
         """ Programs GEN over-voltage limit
@@ -562,168 +490,6 @@ class Genesys():
         """
         self._command_imperative('RCL')
         return None
-
-    def _fast_query(self, query: bytes, expected_bytes: int)  -> bytes:
-        """ Internal method to write GEN fast queries & read their responses through pySerial serial object
-            Not intended for external use.
-        """
-        # Genesys User Manual paragraph 7.9, 'Fast Queries'.
-        to = self.serial_port.timeout
-        self.serial_port.timeout = 0.1
-        # If no response in 10 milli-seconds, Genesys supply is not responsive.  Add another 90 ms for RS-232/RS-485 transmission time; may need to tweak.
-        query = query + '\r'
-        query = query.encode('utf-8')
-        self.serial_port.write(query)
-        self.last_command = query
-        response = self.serial_port.read_until(b'\r', expected_bytes)
-        self.serial_port.timeout = to
-        response = response.decode('utf-8')     # pySerial library requires UTF-8 byte encoding/decoding, not string.
-        response = response.replace('\r','')    # Per Genesys Manual, paragraph 7.5.3, Genesi append '\r' to their responses; remove them.
-        self.last_response = response
-        return self.last_response
-
-    def is_responsive(self) -> bool:
-        """ Fast queries GEN for responsiveness; semi-similar to a network ping of an IP address.
-            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies
-                          - address: int, address of TDK-Lambda GEN Power Supply
-             Outputs:      bool:
-                           - True if Genesys does respond.
-                           - False if Genesys does not respond.
-            GEN command:  bytes([0xAA, address])
-        """
-        # Genesys User Manual paragraph 7.9.1, 'Fast Test for Connection'.
-        return self._fast_query(bytes([0xAA, self.address]), 5) is None
-
-    def is_multi_drop_enabled(self) -> bool:
-        """ Fast queries GEN if Multi-Drop enabled
-            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies
-                          - address: int, address of TDK-Lambda GEN Power Supply
-            Outputs:      bool:
-                          - True if Genesys responds *and* Multi-Drop is enabled.
-                          - False if Genesys doesn't respond *or* Multi-Drop is disabled.
-            GEN command:  bytes([0xAA, address])
-        """
-        # Genesys User Manual paragraph 7.9.1, 'Fast Test for Connection'.
-        response = self._fast_query(bytes([0xAA, self.address]), 5)
-        if response is None: return False
-        return response[0] == 0x31
-
-    def get_registers_fast(self) -> bytes:
-        """ Fast queries GEN for STAT, SENA, SEVE, FLT, FENA & FEVE registers
-            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies
-                          - address: int, address of TDK-Lambda GEN Power Supply
-            Outputs:      bytes(16):
-                          - bytes[0:11] contain respectively the STAT, SENA, SEVE, FLT, FENA & FEVE registers.
-                          - bytes[12:15] contain respectively '$', checksum of all 16 characters as 2 ASCII hex bytes & '\r'.
-            GEN command:  bytes([0x80 | address, 0x80 | address])
-        """
-        # Genesys User Manual paragraph 7.9.2, 'Fast Read Registers'.
-        byte = 0x80 | self.address
-        return self._fast_query(bytes([byte, byte]), 16)
-
-    def get_power_on_time(self) -> bytes:
-        """ Fast queries GEN for lifelong active operational time
-            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies
-                          - address: int, address of TDK-Lambda GEN Power Supply
-            Outputs:      bytes(12):
-                          - bytes[0:7] are the minutes as a 32 Bit integer as 8 ASCII Hex bytes.
-                          - bytes[8:11] contain respectively '$', checksum of all 12 characters as 2 ASCII hex bytes & '\r'.
-            GEN command:  bytes([0xA6, address])
-        """
-        # Genesys User Manual paragraph 7.9.3, 'Read Power-On Time'.
-        return self._fast_query(bytes([0xA6, self.address]), 12)
-
-    def get_register_status_event(self) -> int:
-        """ Reads GEN Status Event register
-            Inputs:       None
-            Outputs:      int, Status Event register contents in 2-digit hex
-            GEN command:  SEVE?
-        """
-        return int(self._command_interrogative('SEVE?'))
-
-    def get_register_fault_condition(self) -> int:
-        """ Reads GEN Fault Condition register
-            Inputs:       None
-            Outputs:      int, Fault Condition register contents in 2-digit hex
-            GEN command:  FLT?
-        """
-        return int(self._command_interrogative('FLT?'))
-
-    def get_register_fault_enable(self) -> int:
-        """ Reads GEN Fault Enable register
-            Inputs:       None
-            Outputs:      int, Fault Enable register contents in 2-digit hex
-            GEN command:  FENA?
-        """
-        return int(self._command_interrogative('FENA?'))
-
-    def set_register_fault_enable(self, fault_enable: int) -> None:
-        """ Programs GEN Fault Enable register
-            Inputs:       fault_enable: int, desired Fault Enable register contents in 2-digit hex
-            Outputs:      None
-            GEN command:  FENA {}
-            - Class Genesys supports Service Requests, but SRQ messages are be handled by the client application.
-            - From 'TDK-Lambda Genesys Power Supplies User Manual, 83-507-013':
-                - Since Service Request messages may be sent from any supply at any time,
-                there is a chance they can collide with other messages from other supplies.
-                - Your controller software has to be sophisticated enough to read messages that
-                may come at any time, and to recover if messages are corrupted by collisions.
-                - If you need Service Request messaging, please contact TDK-Lambda for assistance.
-                We can provide several special communication commands and settings that will help with this.
-        """
-        if type(fault_enable) != int:
-            raise TypeError('Invalid Fault Enable, must be an int.')
-        if not (0 <= fault_enable <= 255):
-            raise ValueError('Invalid Fault Enable, must be in range (0..255).')
-        fault_enable = format(fault_enable,'X')
-        self._command_imperative('FENA {}'.format(fault_enable))
-        return None
-
-    def get_register_fault_event(self) -> int:
-        """ Reads GEN Fault Event register
-            Inputs:       None
-            Outputs:      int, Fault Event register contents in 2-digit hex
-            GEN command:  FEVE?
-        """
-        return int(self._command_interrogative('FEVE?'))
-
-    def get_register_status_condition(self) -> int:
-        """ Reads GEN Status Condition register
-            Inputs:       None
-            Outputs:      int, Status Condition register contents in 2-digit hex
-            GEN command:  STAT?
-        """
-        return int(self._command_interrogative('STAT?'))
-
-    def set_register_status_condition(self, status_enable: int) -> None:
-        """ Programs GEN Status Condition register
-            Inputs:       status_enable: int, desire Status Condition register contents in 2-digit hex
-            Outputs:      None
-            GEN command:  SENA {}
-            - Class Genesys supports Service Requests, but SRQ messages are be handled by the client application.
-            - From 'TDK-Lambda Genesys Power Supplies User Manual, 83-507-013':
-                - Since Service Request messages may be sent from any supply at any time,
-                there is a chance they can collide with other messages from other supplies.
-                - Your controller software has to be sophisticated enough to read messages that
-                may come at any time, and to recover if messages are corrupted by collisions.
-                - If you need Service Request messaging, please contact TDK-Lambda for assistance.
-                We can provide several special communication commands and settings that will help with this.
-        """
-        if type(status_enable) != int:
-            raise TypeError('Invalid Status Enable, must be an int.')
-        if not (0 <= status_enable <= 255):
-            raise ValueError('Invalid Status Enable, must be in range (0..255).')
-        status_enable = format(status_enable,'X')
-        self._command_imperative('SENA {}'.format(status_enable))
-        return None
-
-    def get_register_status_enable(self) -> int:
-        """ Reads GEN Status Enable register
-            Inputs:       None
-            Outputs:      int, Status Enable register contents in 2-digit hex
-            GEN command:  SENA?
-        """
-        return int(self._command_interrogative('SENA?'))
 
     def _command_imperative(self, command: str) -> None:
         """ Reads GEN Status Event register
@@ -910,3 +676,237 @@ class Genesys():
         """
         Genesys._group_write_command(serial_port, 'GRCL')
         return None
+
+    def get_foldback_delay(self) -> int:
+        """ Reads total GEN Foldback delay, sum of programmed & standard 250 milli-seconds
+            Inputs:       None
+            Outputs:      int, in range(250, 506, 1)
+            GEN command:  FBD?
+        """
+        return self._command_interrogative('FBD?')
+
+    def get_ms_parallel_operation(self) -> str:
+        """ Reads GEN ms parallel operation
+            Inputs:       None
+            Outputs:      int: in (0, 1, 2, 3, 4)
+            GEN command:  MS?
+        """
+        return self._command_interrogative('MS?')
+
+    def get_voltages_currents(self) -> dict:
+        """ Reads GEN Voltage Measured, Voltage Programmed, Amperage Measured, Amperage Programmed, Over Voltage & Under Voltage
+            Inputs:       None
+            Outputs:      dict, {'Voltage Measured'     : float,
+                                 'Voltage Programmed'   : float,
+                                 'Amperage Measured'    : float,
+                                 'Amperage Programmed'  : float,
+                                 'Over Voltage'         : float,
+                                 'Under Voltage'        : float}
+            GEN command:  DVC?
+        """
+        va = self._command_interrogative('DVC?')
+        va = va.split(',')
+        for i in range(0, len(va), 1): va[i] = float(va[i])
+        return {'Voltage Measured'      : va[0],
+                'Voltage Programmed'    : va[1],
+                'Amperage Measured'     : va[2],
+                'Amperage Programmed'   : va[3],
+                'Over Voltage'          : va[4],
+                'Under Voltage'         : va[5]}
+
+    def reset_foldback_delay(self) -> None:
+        """ Resets GEN Foldback delay to 0 + standard inalterable 250 milli-seconds
+            Inputs:       None
+            Outputs:      int, in range(250, 506, 1)
+            GEN command:  FBDRST
+        """
+        self._command_imperative('FBDRST')
+        return None
+
+    def set_additional_foldback_delay(self, milli_seconds: int) -> None:
+        """ Programs GEN Foldback delay, in addition to standard 250 milli-seconds
+            Inputs:        int:  milli_seconds in range (0, 256, 1)
+            Outputs:       None
+            GEN commands:  FBD {milli_seconds}
+        """
+        if type(milli_seconds) != int:
+            raise TypeError('Invalid Foldback Delay, must be an integer.')
+        if not milli_seconds in range(0, 256, 1):
+            raise ValueError('Invalid Foldback Delay, must be in range(0, 256, 1)')
+        self._command_imperative('FBD {}'.format(milli_seconds))
+        return None
+
+    def set_filter_frequency(self, hertz: int) -> None:
+        """ Programs GEN low-pass filter frequency of A/D Converter for voltage & current measurement
+            Inputs:        hertz: int in (18, 23, 46)
+            Outputs:       None
+            GEN commands:  FILTER {hertz}
+        """
+        if type(hertz) != int:
+            raise TypeError('Invalid Frequency, must be an integer.')
+        if not hertz in (18, 23, 46):
+            raise ValueError('Invalid Frequency, must be in (18, 23, 46)')
+        self._command_imperative('FILTER {}'.format(hertz))
+        return None
+
+    def _fast_query(self, query: bytes, expected_bytes: int)  -> bytes:
+        """ Internal method to write GEN fast queries & read their responses through pySerial serial object
+            Not intended for external use.
+        """
+        # Genesys User Manual paragraph 7.9, 'Fast Queries'.
+        to = self.serial_port.timeout
+        self.serial_port.timeout = 0.1
+        # If no response in 10 milli-seconds, Genesys supply is not responsive.  Add another 90 ms for RS-232/RS-485 transmission time; may need to tweak.
+        query = query + '\r'
+        query = query.encode('utf-8')
+        self.serial_port.write(query)
+        self.last_command = query
+        response = self.serial_port.read_until(b'\r', expected_bytes)
+        self.serial_port.timeout = to
+        response = response.decode('utf-8')     # pySerial library requires UTF-8 byte encoding/decoding, not string.
+        response = response.replace('\r','')    # Per Genesys Manual, paragraph 7.5.3, Genesi append '\r' to their responses; remove them.
+        self.last_response = response
+        return self.last_response
+
+    def is_responsive(self) -> bool:
+        """ Fast queries GEN for responsiveness; semi-similar to a network ping of an IP address.
+            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies
+                          - address: int, address of TDK-Lambda GEN Power Supply
+             Outputs:      bool:
+                           - True if Genesys does respond.
+                           - False if Genesys does not respond.
+            GEN command:  bytes([0xAA, address])
+        """
+        # Genesys User Manual paragraph 7.9.1, 'Fast Test for Connection'.
+        return self._fast_query(bytes([0xAA, self.address]), 5) is None
+
+    def is_multi_drop_enabled(self) -> bool:
+        """ Fast queries GEN if Multi-Drop enabled
+            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies
+                          - address: int, address of TDK-Lambda GEN Power Supply
+            Outputs:      bool:
+                          - True if Genesys responds *and* Multi-Drop is enabled.
+                          - False if Genesys doesn't respond *or* Multi-Drop is disabled.
+            GEN command:  bytes([0xAA, address])
+        """
+        # Genesys User Manual paragraph 7.9.1, 'Fast Test for Connection'.
+        response = self._fast_query(bytes([0xAA, self.address]), 5)
+        if response is None: return False
+        return response[0] == 0x31
+
+    def get_registers_fast(self) -> bytes:
+        """ Fast queries GEN for STAT, SENA, SEVE, FLT, FENA & FEVE registers
+            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies
+                          - address: int, address of TDK-Lambda GEN Power Supply
+            Outputs:      bytes(16):
+                          - bytes[0:11] contain respectively the STAT, SENA, SEVE, FLT, FENA & FEVE registers.
+                          - bytes[12:15] contain respectively '$', checksum of all 16 characters as 2 ASCII hex bytes & '\r'.
+            GEN command:  bytes([0x80 | address, 0x80 | address])
+        """
+        # Genesys User Manual paragraph 7.9.2, 'Fast Read Registers'.
+        byte = 0x80 | self.address
+        return self._fast_query(bytes([byte, byte]), 16)
+
+    def get_power_on_time(self) -> bytes:
+        """ Fast queries GEN for lifelong active operational time
+            Inputs:       - serial_port: pySerial serial object, RS-232 or RS-485 serial port connecting PC to GEN Power Supplies
+                          - address: int, address of TDK-Lambda GEN Power Supply
+            Outputs:      bytes(12):
+                          - bytes[0:7] are the minutes as a 32 Bit integer as 8 ASCII Hex bytes.
+                          - bytes[8:11] contain respectively '$', checksum of all 12 characters as 2 ASCII hex bytes & '\r'.
+            GEN command:  bytes([0xA6, address])
+        """
+        # Genesys User Manual paragraph 7.9.3, 'Read Power-On Time'.
+        return self._fast_query(bytes([0xA6, self.address]), 12)
+
+    def get_register_status_event(self) -> int:
+        """ Reads GEN Status Event register
+            Inputs:       None
+            Outputs:      int, Status Event register contents in 2-digit hex
+            GEN command:  SEVE?
+        """
+        return int(self._command_interrogative('SEVE?'))
+
+    def get_register_fault_condition(self) -> int:
+        """ Reads GEN Fault Condition register
+            Inputs:       None
+            Outputs:      int, Fault Condition register contents in 2-digit hex
+            GEN command:  FLT?
+        """
+        return int(self._command_interrogative('FLT?'))
+
+    def get_register_fault_enable(self) -> int:
+        """ Reads GEN Fault Enable register
+            Inputs:       None
+            Outputs:      int, Fault Enable register contents in 2-digit hex
+            GEN command:  FENA?
+        """
+        return int(self._command_interrogative('FENA?'))
+
+    def set_register_fault_enable(self, fault_enable: int) -> None:
+        """ Programs GEN Fault Enable register
+            Inputs:       fault_enable: int, desired Fault Enable register contents in 2-digit hex
+            Outputs:      None
+            GEN command:  FENA {}
+            - Class Genesys supports Service Requests, but SRQ messages are be handled by the client application.
+            - From 'TDK-Lambda Genesys Power Supplies User Manual, 83-507-013':
+                - Since Service Request messages may be sent from any supply at any time,
+                there is a chance they can collide with other messages from other supplies.
+                - Your controller software has to be sophisticated enough to read messages that
+                may come at any time, and to recover if messages are corrupted by collisions.
+                - If you need Service Request messaging, please contact TDK-Lambda for assistance.
+                We can provide several special communication commands and settings that will help with this.
+        """
+        if type(fault_enable) != int:
+            raise TypeError('Invalid Fault Enable, must be an int.')
+        if not (0 <= fault_enable <= 255):
+            raise ValueError('Invalid Fault Enable, must be in range (0..255).')
+        fault_enable = format(fault_enable,'X')
+        self._command_imperative('FENA {}'.format(fault_enable))
+        return None
+
+    def get_register_fault_event(self) -> int:
+        """ Reads GEN Fault Event register
+            Inputs:       None
+            Outputs:      int, Fault Event register contents in 2-digit hex
+            GEN command:  FEVE?
+        """
+        return int(self._command_interrogative('FEVE?'))
+
+    def get_register_status_condition(self) -> int:
+        """ Reads GEN Status Condition register
+            Inputs:       None
+            Outputs:      int, Status Condition register contents in 2-digit hex
+            GEN command:  STAT?
+        """
+        return int(self._command_interrogative('STAT?'))
+
+    def set_register_status_condition(self, status_enable: int) -> None:
+        """ Programs GEN Status Condition register
+            Inputs:       status_enable: int, desire Status Condition register contents in 2-digit hex
+            Outputs:      None
+            GEN command:  SENA {}
+            - Class Genesys supports Service Requests, but SRQ messages are be handled by the client application.
+            - From 'TDK-Lambda Genesys Power Supplies User Manual, 83-507-013':
+                - Since Service Request messages may be sent from any supply at any time,
+                there is a chance they can collide with other messages from other supplies.
+                - Your controller software has to be sophisticated enough to read messages that
+                may come at any time, and to recover if messages are corrupted by collisions.
+                - If you need Service Request messaging, please contact TDK-Lambda for assistance.
+                We can provide several special communication commands and settings that will help with this.
+        """
+        if type(status_enable) != int:
+            raise TypeError('Invalid Status Enable, must be an int.')
+        if not (0 <= status_enable <= 255):
+            raise ValueError('Invalid Status Enable, must be in range (0..255).')
+        status_enable = format(status_enable,'X')
+        self._command_imperative('SENA {}'.format(status_enable))
+        return None
+
+    def get_register_status_enable(self) -> int:
+        """ Reads GEN Status Enable register
+            Inputs:       None
+            Outputs:      int, Status Enable register contents in 2-digit hex
+            GEN command:  SENA?
+        """
+        return int(self._command_interrogative('SENA?'))
